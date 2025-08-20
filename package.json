@@ -2,8 +2,8 @@
   "name": "near-studio",
   "displayName": "Near Studio",
   "description": "VS Code extension for building and deploying Near Protocol smart contracts",
-  "version": "0.0.1",
-  "publisher": "oxf3stus",
+  "version": "0.0.2",
+  "publisher": "Festivemena",
   "license": "MIT",
   "engines": {
     "vscode": "^1.74.0"
