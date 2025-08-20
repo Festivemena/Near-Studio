@@ -1,7 +1,7 @@
 {
   "name": "near-studio",
   "displayName": "Near Studio",
-  "description": "VS Code extension for building and deploying Near Protocol smart contracts",
+  "description": "A comprehensive VS Code extension for developing, building, testing, and deploying NEAR Protocol smart contracts in Rust, JavaScript, TypeScript, and AssemblyScript.",
   "version": "0.0.2",
   "publisher": "Festivemena",
   "license": "MIT",
@@ -24,6 +24,14 @@
     "assemblyscript",
     "wasm"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Festivemena/Near-Studio"
+  },
+  "bugs": {
+    "url": "https://github.com/Festivemena/Near-Studio/issues" },
+  "homepage": "https://github.com/Festivemena/Near-Studio#readme",
+
   "activationEvents": [
     "onLanguage:rust",
     "onLanguage:javascript",
@@ -211,5 +219,6 @@
     "near-api-js": "^2.1.0",
     "vsce": "^2.15.0",
     "wasm-opt": "^1.3.0"
-  }
+  },
+  "icon": "logo.png"
 }

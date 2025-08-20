@@ -1,5 +1,7 @@
-![NearSmart Banner](./nearstudio-light.svg#gh-light-mode-only)
-![NearSmart Banner](./nearstudio-dark.svg#gh-dark-mode-only)
+![NearSmart Banner](./nearstudio-light.png#gh-light-mode-only)
+![NearSmart Banner](./nearstudio-dark.png#gh-dark-mode-only)
+![Near Studio](https://raw.githubusercontent.com/Festivemena/Near-Studio/main/assets/nearstudio-dark.png)
+
 # Near Smart Contracts VS Code Extension
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
