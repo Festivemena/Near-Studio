@@ -1,6 +1,13 @@
+![NearSmart Banner](./nearstudio-light.svg#gh-light-mode-only)
+![NearSmart Banner](./nearstudio-dark.svg#gh-dark-mode-only)
 # Near Smart Contracts VS Code Extension
 
-# Near Smart Contracts VS Code Extension
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub stars](https://img.shields.io/github/stars/Festivemena/Near-Studio.svg?style=social&label=Star)](https://github.com/Festivemena/Near-Studio)
+[![GitHub forks](https://img.shields.io/github/forks/Festivemena/Near-Studio.svg?style=social&label=Fork)](https://github.com/Festivemena/Near-Studio/fork)
+[![GitHub issues](https://img.shields.io/github/issuesFestivemena/Near-Studio.svg)](https://github.com/Festivemena/Near-Studio/issues)
+[![Contributors](https://img.shields.io/github/contributors/Festivemena/Near-Studio.svg)](https://github.com/Festivemena/Near-Studio/graphs/contributors)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 A comprehensive VS Code extension for developing, building, testing, and deploying Near Protocol smart contracts in **Rust**, **JavaScript**, **TypeScript**, and **AssemblyScript**.
 
