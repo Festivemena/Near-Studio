@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/Festivemena/Near-Studio.svg?style=social&label=Star)](https://github.com/Festivemena/Near-Studio)
 [![GitHub forks](https://img.shields.io/github/forks/Festivemena/Near-Studio.svg?style=social&label=Fork)](https://github.com/Festivemena/Near-Studio/fork)
-[![GitHub issues](https://img.shields.io/github/issuesFestivemena/Near-Studio.svg)](https://github.com/Festivemena/Near-Studio/issues)
+[![GitHub issues](https://img.shields.io/github/issues/Festivemena/Near-Studio.svg)](https://github.com/Festivemena/Near-Studio/issues)
 [![Contributors](https://img.shields.io/github/contributors/Festivemena/Near-Studio.svg)](https://github.com/Festivemena/Near-Studio/graphs/contributors)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
