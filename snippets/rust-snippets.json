@@ -1,0 +1,146 @@
+{
+  "Near Contract Structure": {
+    "prefix": "near-contract",
+    "body": [
+      "use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};",
+      "use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault};",
+      "",
+      "#[near_bindgen]",
+      "#[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]",
+      "pub struct ${1:ContractName} {",
+      "    pub owner: AccountId,",
+      "}",
+      "",
+      "#[near_bindgen]",
+      "impl ${1:ContractName} {",
+      "    #[init]",
+      "    pub fn new() -> Self {",
+      "        Self {",
+      "            owner: env::signer_account_id(),",
+      "        }",
+      "    }",
+      "",
+      "    pub fn ${2:method_name}(&self) -> ${3:ReturnType} {",
+      "        ${4:// Implementation}",
+      "    }",
+      "}"
+    ],
+    "description": "Create a basic Near smart contract structure"
+  },
+  "Near View Method": {
+    "prefix": "near-view",
+    "body": [
+      "pub fn ${1:method_name}(&self) -> ${2:ReturnType} {",
+      "    ${3:// View method implementation}",
+      "}"
+    ],
+    "description": "Create a view method"
+  },
+  "Near Call Method": {
+    "prefix": "near-call",
+    "body": [
+      "pub fn ${1:method_name}(&mut self${2:, param: Type}) -> ${3:ReturnType} {",
+      "    ${4:// Call method implementation}",
+      "}"
+    ],
+    "description": "Create a call method"
+  },
+  "Near Payable Method": {
+    "prefix": "near-payable",
+    "body": [
+      "#[payable]",
+      "pub fn ${1:method_name}(&mut self${2:, param: Type}) -> ${3:ReturnType} {",
+      "    let deposit = env::attached_deposit();",
+      "    ${4:// Payable method implementation}",
+      "}"
+    ],
+    "description": "Create a payable method"
+  },
+  "Near Init Method": {
+    "prefix": "near-init",
+    "body": [
+      "#[init]",
+      "pub fn new(${1:param: Type}) -> Self {",
+      "    Self {",
+      "        ${2:field: param,}",
+      "    }",
+      "}"
+    ],
+    "description": "Create an initialization method"
+  },
+  "Near Assert Owner": {
+    "prefix": "near-assert-owner",
+    "body": [
+      "assert_eq!(",
+      "    env::predecessor_account_id(),",
+      "    self.owner,",
+      "    \"Only owner can call this method\"",
+      ");"
+    ],
+    "description": "Assert that caller is the owner"
+  },
+  "Near Storage Operations": {
+    "prefix": "near-storage",
+    "body": [
+      "use near_sdk::collections::{${1:UnorderedMap, Vector, LookupMap}};",
+      "",
+      "#[derive(BorshDeserialize, BorshSerialize)]",
+      "pub struct ${2:StorageStruct} {",
+      "    pub ${3:field_name}: ${1:UnorderedMap}<${4:KeyType}, ${5:ValueType}>,",
+      "}"
+    ],
+    "description": "Add storage collections"
+  },
+  "Near Cross Contract Call": {
+    "prefix": "near-cross-contract",
+    "body": [
+      "use near_sdk::{ext_contract, Gas, Promise};",
+      "",
+      "#[ext_contract(${1:ext_contract_name})]",
+      "trait ${2:ExternalContract} {",
+      "    fn ${3:method_name}(${4:&self, param: Type}) -> ${5:ReturnType};",
+      "}",
+      "",
+      "impl ${6:YourContract} {",
+      "    pub fn ${7:call_external}(&self, ${8:contract_id: AccountId}) -> Promise {",
+      "        ${1:ext_contract_name}::${3:method_name}(",
+      "            ${9:// parameters}",
+      "            contract_id,",
+      "            0, // deposit",
+      "            Gas(${10:30_000_000_000_000}) // gas",
+      "        )",
+      "    }",
+      "}"
+    ],
+    "description": "Create cross-contract call structure"
+  },
+  "Near Test Module": {
+    "prefix": "near-test",
+    "body": [
+      "#[cfg(test)]",
+      "mod tests {",
+      "    use super::*;",
+      "    use near_sdk::test_utils::{accounts, VMContextBuilder};",
+      "    use near_sdk::{testing_env, MockedBlockchain};",
+      "",
+      "    fn get_context(predecessor_account_id: AccountId) -> VMContextBuilder {",
+      "        let mut builder = VMContextBuilder::new();",
+      "        builder",
+      "            .current_account_id(accounts(0))",
+      "            .signer_account_id(predecessor_account_id.clone())",
+      "            .predecessor_account_id(predecessor_account_id);",
+      "        builder",
+      "    }",
+      "",
+      "    #[test]",
+      "    fn test_${1:method_name}() {",
+      "        let mut context = get_context(accounts(1));",
+      "        testing_env!(context.build());",
+      "        let mut contract = ${2:ContractName}::new();",
+      "        ${3:// Test implementation}",
+      "    }",
+      "}"
+    ],
+    "description": "Create test module structure"
+  }
+}

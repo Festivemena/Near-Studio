@@ -1,0 +1,275 @@
+{
+  "folders": [
+    {
+      "name": "Near Smart Contracts",
+      "path": "."
+    }
+  ],
+  "settings": {
+    // Near Extension Settings
+    "nearExtension.network": "testnet",
+    "nearExtension.accountId": "",
+    "nearExtension.buildCommand": "cargo build --target wasm32-unknown-unknown --release",
+    "nearExtension.asBuildCommand": "npm run asbuild:release",
+    "nearExtension.jsBuildCommand": "npm run build",
+    "nearExtension.wasmOptimization": true,
+    "nearExtension.autoInstallDeps": true,
+
+    // File Associations
+    "files.associations": {
+      "*.rs": "rust",
+      "*.ts": "typescript",
+      "*.js": "javascript",
+      "Cargo.toml": "toml",
+      "asconfig.json": "json"
+    },
+
+    // Language-specific settings
+    "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+    "rust-analyzer.checkOnSave.command": "check",
+    "rust-analyzer.cargo.features": [],
+    
+    // TypeScript settings
+    "typescript.preferences.useAliasesForRenames": false,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    
+    // AssemblyScript settings
+    "assemblyscript.trace": false,
+    
+    // File exclusions
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/target": true,
+      "**/build": true,
+      "**/.git": true,
+      "**/.DS_Store": true
+    },
+
+    // Search exclusions
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/target": true,
+      "**/build": true
+    },
+
+    // Terminal settings
+    "terminal.integrated.env.osx": {
+      "PATH": "${env:PATH}:${env:HOME}/.cargo/bin"
+    },
+    "terminal.integrated.env.linux": {
+      "PATH": "${env:PATH}:${env:HOME}/.cargo/bin"
+    },
+
+    // Git settings
+    "git.ignoreLimitWarning": true,
+
+    // Editor settings for contract development
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true
+    },
+
+    // Language-specific formatting
+    "[rust]": {
+      "editor.defaultFormatter": "rust-lang.rust-analyzer",
+      "editor.formatOnSave": true
+    },
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+  },
+
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Build Rust Contract",
+        "type": "shell",
+        "command": "cargo",
+        "args": ["build", "--target", "wasm32-unknown-unknown", "--release"],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": ["$rustc"]
+      },
+      {
+        "label": "Test Rust Contract",
+        "type": "shell",
+        "command": "cargo",
+        "args": ["test"],
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": ["$rustc"]
+      },
+      {
+        "label": "Build JS/TS Contract",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "build"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": ["$tsc"]
+      },
+      {
+        "label": "Test JS/TS Contract",
+        "type": "shell",
+        "command": "npm",
+        "args": ["test"],
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "Build AssemblyScript Contract",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "asbuild:release"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "Test AssemblyScript Contract",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "test"],
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "Deploy Contract",
+        "type": "shell",
+        "command": "near",
+        "args": [
+          "deploy",
+          "--wasmFile", "${input:wasmFile}",
+          "--accountId", "${input:accountId}",
+          "--networkId", "${input:network}"
+        ],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "Setup Rust Toolchain",
+        "type": "shell",
+        "command": "rustup",
+        "args": ["target", "add", "wasm32-unknown-unknown"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      }
+    ],
+    "inputs": [
+      {
+        "id": "wasmFile",
+        "description": "WASM file path",
+        "default": "build/contract.wasm",
+        "type": "promptString"
+      },
+      {
+        "id": "accountId",
+        "description": "Near account ID",
+        "default": "contract.testnet",
+        "type": "promptString"
+      },
+      {
+        "id": "network",
+        "description": "Network",
+        "default": "testnet",
+        "type": "pickString",
+        "options": [
+          "testnet",
+          "mainnet",
+          "localnet"
+        ]
+      }
+    ]
+  },
+
+  "extensions": {
+    "recommendations": [
+      "rust-lang.rust-analyzer",
+      "ms-vscode.vscode-typescript-next",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      "ms-vscode.vscode-json",
+      "redhat.vscode-yaml",
+      "ms-vscode.vscode-eslint",
+      "ms-vscode.test-adapter-converter",
+      "hbenl.vscode-test-explorer"
+    ]
+  },
+
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Debug Rust Tests",
+        "type": "lldb",
+        "request": "launch",
+        "program": "${workspaceFolder}/target/debug/deps/${workspaceFolderBasename}-*",
+        "args": [],
+        "cwd": "${workspaceFolder}",
+        "sourceLanguages": ["rust"],
+        "preLaunchTask": "cargo build"
+      },
+      {
+        "name": "Debug JS/TS Tests",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/node_modules/.bin/jest",
+        "args": ["--runInBand"],
+        "cwd": "${workspaceFolder}",
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+      }
+    ]
+  }
+}

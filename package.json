@@ -1,0 +1,215 @@
+{
+  "name": "near-studio",
+  "displayName": "Near Studio",
+  "description": "VS Code extension for building and deploying Near Protocol smart contracts",
+  "version": "0.0.1",
+  "publisher": "oxf3stus",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Debuggers",
+    "Other"
+  ],
+  "keywords": [
+    "near",
+    "blockchain",
+    "smart-contracts",
+    "rust",
+    "javascript",
+    "typescript",
+    "assemblyscript",
+    "wasm"
+  ],
+  "activationEvents": [
+    "onLanguage:rust",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:assemblyscript",
+    "workspaceContains:**/Cargo.toml",
+    "workspaceContains:**/package.json",
+    "workspaceContains:**/asconfig.json",
+    "workspaceContains:**/assembly/**"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "nearExtension.createContract",
+        "title": "Create New Near Contract",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.createRustContract",
+        "title": "Create Rust Contract",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.createJSContract",
+        "title": "Create JavaScript Contract",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.createTSContract",
+        "title": "Create TypeScript Contract",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.createASContract",
+        "title": "Create AssemblyScript Contract",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.buildContract",
+        "title": "Build Contract",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.deployContract",
+        "title": "Deploy Contract",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.testContract",
+        "title": "Test Contract",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.initializeProject",
+        "title": "Initialize Near Project",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.setupRustToolchain",
+        "title": "Setup Rust Toolchain",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.setupASToolchain",
+        "title": "Setup AssemblyScript Toolchain",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.optimizeContract",
+        "title": "Optimize Contract for Production",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.generateBindings",
+        "title": "Generate Contract Bindings",
+        "category": "Near"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "when": "resourceExtname == .rs || resourceExtname == .js || resourceExtname == .ts",
+          "command": "nearExtension.buildContract",
+          "group": "near"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "nearExtension.createContract",
+          "when": "workspaceFolderCount > 0"
+        }
+      ]
+    },
+    "snippets": [
+      {
+        "language": "rust",
+        "path": "./snippets/rust-snippets.json"
+      },
+      {
+        "language": "javascript",
+        "path": "./snippets/js-snippets.json"
+      },
+      {
+        "language": "typescript",
+        "path": "./snippets/ts-snippets.json"
+      },
+      {
+        "language": "assemblyscript",
+        "path": "./snippets/as-snippets.json"
+      }
+    ],
+    "configuration": {
+      "title": "Near Smart Contracts",
+      "properties": {
+        "nearExtension.network": {
+          "type": "string",
+          "enum": [
+            "testnet",
+            "mainnet",
+            "localnet"
+          ],
+          "default": "testnet",
+          "description": "Default Near network to use"
+        },
+        "nearExtension.accountId": {
+          "type": "string",
+          "default": "",
+          "description": "Your Near account ID"
+        },
+        "nearExtension.buildCommand": {
+          "type": "string",
+          "default": "cargo build --target wasm32-unknown-unknown --release",
+          "description": "Command to build Rust contracts"
+        },
+        "nearExtension.asBuildCommand": {
+          "type": "string",
+          "default": "npm run asbuild",
+          "description": "Command to build AssemblyScript contracts"
+        },
+        "nearExtension.jsBuildCommand": {
+          "type": "string",
+          "default": "npm run build",
+          "description": "Command to build JavaScript/TypeScript contracts"
+        },
+        "nearExtension.wasmOptimization": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable WASM optimization for production builds"
+        },
+        "nearExtension.autoInstallDeps": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically install missing dependencies"
+        }
+      }
+    },
+    "taskDefinitions": [
+      {
+        "type": "near",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The Near command to execute"
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
+    "@vscode/vsce": "^3.6.0",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "near-api-js": "^2.1.0",
+    "vsce": "^2.15.0",
+    "wasm-opt": "^1.3.0"
+  }
+}

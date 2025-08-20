@@ -1,0 +1,233 @@
+{
+  "Near TypeScript Contract": {
+    "prefix": "near-contract-ts",
+    "body": [
+      "import { NearBindgen, near, call, view, initialize, LookupMap, UnorderedMap } from 'near-sdk-js';",
+      "",
+      "interface ${1:ContractState} {",
+      "    owner: string;",
+      "    ${2:property}: ${3:string};",
+      "}",
+      "",
+      "@NearBindgen({})",
+      "export class ${4:ContractName} {",
+      "    owner: string = '';",
+      "    ${2:property}: ${3:string} = '';",
+      "    data: UnorderedMap<string> = new UnorderedMap('data');",
+      "",
+      "    @initialize({})",
+      "    init({ owner }: { owner?: string }): void {",
+      "        this.owner = owner || near.signerAccountId();",
+      "    }",
+      "",
+      "    @view({})",
+      "    getOwner(): string {",
+      "        return this.owner;",
+      "    }",
+      "",
+      "    @call({})",
+      "    ${5:methodName}({ ${6:param} }: { ${6:param}: ${7:string} }): ${8:void} {",
+      "        ${9:// Method implementation}",
+      "    }",
+      "}"
+    ],
+    "description": "Create a comprehensive TypeScript Near contract"
+  },
+  "Near TS Interface": {
+    "prefix": "near-interface-ts",
+    "body": [
+      "interface ${1:InterfaceName} {",
+      "    ${2:property}: ${3:string};",
+      "    ${4:method}(${5:param}: ${6:string}): ${7:string};",
+      "}"
+    ],
+    "description": "Create a TypeScript interface"
+  },
+  "Near TS View Method": {
+    "prefix": "near-view-ts",
+    "body": [
+      "@view({})",
+      "${1:methodName}({ ${2:param} }: { ${2:param}: ${3:string} }): ${4:string} {",
+      "    ${5:// View method implementation}",
+      "    return ${6:result};",
+      "}"
+    ],
+    "description": "Create a typed view method"
+  },
+  "Near TS Call Method": {
+    "prefix": "near-call-ts",
+    "body": [
+      "@call({})",
+      "${1:methodName}({ ${2:param} }: { ${2:param}: ${3:string} }): ${4:void} {",
+      "    ${5:// Call method implementation}",
+      "}"
+    ],
+    "description": "Create a typed call method"
+  },
+  "Near TS Payable Method": {
+    "prefix": "near-payable-ts",
+    "body": [
+      "@call({ payableFunction: true })",
+      "${1:methodName}({ ${2:param} }: { ${2:param}: ${3:string} }): ${4:string} {",
+      "    const deposit: bigint = near.attachedDeposit();",
+      "    ${5:// Payable method implementation}",
+      "    return ${6:result};",
+      "}"
+    ],
+    "description": "Create a typed payable method"
+  },
+  "Near TS Storage Collections": {
+    "prefix": "near-storage-ts",
+    "body": [
+      "import { UnorderedMap, Vector, LookupMap, UnorderedSet } from 'near-sdk-js';",
+      "",
+      "// Storage collections with proper typing",
+      "${1:mapName}: UnorderedMap<${2:ValueType}> = new UnorderedMap<${2:ValueType}>('${3:prefix}');",
+      "${4:vectorName}: Vector<${5:ItemType}> = new Vector<${5:ItemType}>('${6:prefix}');",
+      "${7:lookupName}: LookupMap<${8:ValueType}> = new LookupMap<${8:ValueType}>('${9:prefix}');",
+      "${10:setName}: UnorderedSet<${11:ItemType}> = new UnorderedSet<${11:ItemType}>('${12:prefix}');"
+    ],
+    "description": "Add typed storage collections"
+  },
+  "Near TS Cross Contract": {
+    "prefix": "near-cross-contract-ts",
+    "body": [
+      "interface ${1:ExternalContract} {",
+      "    ${2:method_name}(args: { ${3:param}: ${4:string} }): Promise<${5:ReturnType}>;",
+      "}",
+      "",
+      "@call({})",
+      "${6:callExternal}({ contractId, ${3:param} }: { contractId: string; ${3:param}: ${4:string} }): Promise<${5:ReturnType}> {",
+      "    const promise = near.promiseBatchCreate(contractId);",
+      "    near.promiseBatchActionFunctionCall(",
+      "        promise,",
+      "        '${2:method_name}',",
+      "        JSON.stringify({ ${3:param} }),",
+      "        ${7:0}n, // deposit",
+      "        ${8:30_000_000_000_000}n // gas",
+      "    );",
+      "    return near.promiseReturn(promise);",
+      "}"
+    ],
+    "description": "Create typed cross-contract call"
+  },
+  "Near TS Error Handling": {
+    "prefix": "near-error-ts",
+    "body": [
+      "class ${1:CustomError} extends Error {",
+      "    constructor(message: string) {",
+      "        super(message);",
+      "        this.name = '${1:CustomError}';",
+      "    }",
+      "}",
+      "",
+      "function ${2:validateInput}(${3:param}: ${4:string}): void {",
+      "    if (!${3:param}) {",
+      "        throw new ${1:CustomError}('${5:Parameter is required}');",
+      "    }",
+      "}"
+    ],
+    "description": "Create custom error handling"
+  },
+  "Near TS Generic Method": {
+    "prefix": "near-generic-ts",
+    "body": [
+      "@view({})",
+      "${1:genericMethod}<T extends ${2:BaseType}>({ ${3:param} }: { ${3:param}: T }): T {",
+      "    ${4:// Generic method implementation}",
+      "    return ${3:param};",
+      "}"
+    ],
+    "description": "Create a generic method"
+  },
+  "Near TS Event Interface": {
+    "prefix": "near-event-ts",
+    "body": [
+      "interface ${1:EventData} {",
+      "    ${2:property}: ${3:string};",
+      "    timestamp: string;",
+      "    user: string;",
+      "}",
+      "",
+      "interface ${4:Event} {",
+      "    standard: string;",
+      "    version: string;",
+      "    event: string;",
+      "    data: ${1:EventData};",
+      "}",
+      "",
+      "private emit${5:Event}(data: ${1:EventData}): void {",
+      "    const event: ${4:Event} = {",
+      "        standard: '${6:nep171}',",
+      "        version: '${7:1.0.0}',",
+      "        event: '${8:event_name}',",
+      "        data",
+      "    };",
+      "    near.log(JSON.stringify(event));",
+      "}"
+    ],
+    "description": "Create typed event interface and emitter"
+  },
+  "Near TS Enum": {
+    "prefix": "near-enum-ts",
+    "body": [
+      "enum ${1:StatusEnum} {",
+      "    ${2:ACTIVE} = '${3:active}',",
+      "    ${4:INACTIVE} = '${5:inactive}',",
+      "    ${6:PENDING} = '${7:pending}'",
+      "}",
+      "",
+      "@call({})",
+      "updateStatus({ status }: { status: ${1:StatusEnum} }): void {",
+      "    this.assertOwner();",
+      "    this.status = status;",
+      "}"
+    ],
+    "description": "Create enum and usage"
+  },
+  "Near TS Utility Types": {
+    "prefix": "near-utility-ts",
+    "body": [
+      "// Utility types for Near development",
+      "type AccountId = string;",
+      "type Balance = bigint;",
+      "type Timestamp = bigint;",
+      "type TokenId = string;",
+      "",
+      "interface ${1:BaseContract} {",
+      "    owner: AccountId;",
+      "    createdAt: Timestamp;",
+      "}",
+      "",
+      "type ${2:ContractMethods} = {",
+      "    [K in keyof ${3:YourContract}]: ${3:YourContract}[K] extends Function ? K : never;",
+      "}[keyof ${3:YourContract}];"
+    ],
+    "description": "Define utility types for Near contracts"
+  },
+  "Near TS Migration": {
+    "prefix": "near-migration-ts",
+    "body": [
+      "@call({})",
+      "migrate(): void {",
+      "    this.assertOwner();",
+      "    ",
+      "    // Check if migration is needed",
+      "    const currentVersion = this.version || '0.0.0';",
+      "    const targetVersion = '${1:1.0.0}';",
+      "    ",
+      "    if (currentVersion === targetVersion) {",
+      "        near.log('Contract already at target version');",
+      "        return;",
+      "    }",
+      "    ",
+      "    // Perform migration",
+      "    ${2:// Migration logic here}",
+      "    ",
+      "    this.version = targetVersion;",
+      "    near.log(`Migration completed from \\${currentVersion} to \\${targetVersion}`);",
+      "}"
+    ],
+    "description": "Create contract migration method"
+  }
+}

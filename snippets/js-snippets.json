@@ -1,0 +1,183 @@
+{
+  "Near Contract Class": {
+    "prefix": "near-contract-js",
+    "body": [
+      "import { NearBindgen, near, call, view, initialize } from 'near-sdk-js';",
+      "",
+      "@NearBindgen({})",
+      "export class ${1:ContractName} {",
+      "    constructor() {",
+      "        this.owner = '';",
+      "    }",
+      "",
+      "    @initialize({})",
+      "    init() {",
+      "        this.owner = near.signerAccountId();",
+      "    }",
+      "",
+      "    @view({})",
+      "    ${2:viewMethod}() {",
+      "        ${3:// View method implementation}",
+      "    }",
+      "",
+      "    @call({})",
+      "    ${4:callMethod}(${5:{ param }}) {",
+      "        ${6:// Call method implementation}",
+      "    }",
+      "}"
+    ],
+    "description": "Create a basic Near smart contract class"
+  },
+  "Near View Method JS": {
+    "prefix": "near-view-js",
+    "body": [
+      "@view({})",
+      "${1:methodName}(${2:{ param }}) {",
+      "    ${3:// View method implementation}",
+      "    return ${4:result};",
+      "}"
+    ],
+    "description": "Create a view method in JavaScript"
+  },
+  "Near Call Method JS": {
+    "prefix": "near-call-js",
+    "body": [
+      "@call({})",
+      "${1:methodName}(${2:{ param }}) {",
+      "    ${3:// Call method implementation}",
+      "    return ${4:result};",
+      "}"
+    ],
+    "description": "Create a call method in JavaScript"
+  },
+  "Near Payable Method JS": {
+    "prefix": "near-payable-js",
+    "body": [
+      "@call({ payableFunction: true })",
+      "${1:methodName}(${2:{ param }}) {",
+      "    const deposit = near.attachedDeposit();",
+      "    ${3:// Payable method implementation}",
+      "    return ${4:result};",
+      "}"
+    ],
+    "description": "Create a payable method in JavaScript"
+  },
+  "Near Initialize Method JS": {
+    "prefix": "near-init-js",
+    "body": [
+      "@initialize({})",
+      "init(${1:{ param }}) {",
+      "    ${2:// Initialization logic}",
+      "    this.owner = near.signerAccountId();",
+      "}"
+    ],
+    "description": "Create an initialization method in JavaScript"
+  },
+  "Near Assert Owner JS": {
+    "prefix": "near-assert-owner-js",
+    "body": [
+      "near.assert(",
+      "    near.predecessorAccountId() === this.owner,",
+      "    'Only owner can call this method'",
+      ");"
+    ],
+    "description": "Assert that caller is the owner in JavaScript"
+  },
+  "Near Storage Collections JS": {
+    "prefix": "near-storage-js",
+    "body": [
+      "import { UnorderedMap, Vector, LookupMap } from 'near-sdk-js';",
+      "",
+      "@NearBindgen({})",
+      "export class ${1:ContractName} {",
+      "    constructor() {",
+      "        this.${2:storageField} = new ${3:UnorderedMap}('${4:prefix}');",
+      "    }",
+      "}"
+    ],
+    "description": "Add storage collections in JavaScript"
+  },
+  "Near Cross Contract Call JS": {
+    "prefix": "near-cross-contract-js",
+    "body": [
+      "import { near } from 'near-sdk-js';",
+      "",
+      "@call({})",
+      "${1:callExternal}({ ${2:contractId, param} }) {",
+      "    const promise = near.promiseBatchCreate(contractId);",
+      "    near.promiseBatchActionFunctionCall(",
+      "        promise,",
+      "        '${3:method_name}',",
+      "        JSON.stringify({ ${4:param} }),",
+      "        ${5:0}, // deposit",
+      "        ${6:30000000000000} // gas",
+      "    );",
+      "    return near.promiseReturn(promise);",
+      "}"
+    ],
+    "description": "Create cross-contract call in JavaScript"
+  },
+  "Near Promise Then JS": {
+    "prefix": "near-promise-then-js",
+    "body": [
+      "@call({})",
+      "${1:methodWithCallback}(${2:{ param }}) {",
+      "    const promise = ${3:// create promise};",
+      "    const callbackPromise = near.promiseThen(",
+      "        promise,",
+      "        near.currentAccountId(),",
+      "        '${4:callback_method}',",
+      "        JSON.stringify({ ${5:callback_params} }),",
+      "        0, // deposit",
+      "        ${6:30000000000000} // gas",
+      "    );",
+      "    return near.promiseReturn(callbackPromise);",
+      "}"
+    ],
+    "description": "Create promise with callback in JavaScript"
+  },
+  "Near TypeScript Contract": {
+    "prefix": "near-contract-ts",
+    "body": [
+      "import { NearBindgen, near, call, view, initialize } from 'near-sdk-js';",
+      "",
+      "@NearBindgen({})",
+      "export class ${1:ContractName} {",
+      "    owner: string = '';",
+      "",
+      "    @initialize({})",
+      "    init(): void {",
+      "        this.owner = near.signerAccountId();",
+      "    }",
+      "",
+      "    @view({})",
+      "    ${2:viewMethod}(): ${3:string} {",
+      "        ${4:// View method implementation}",
+      "        return ${5:result};",
+      "    }",
+      "",
+      "    @call({})",
+      "    ${6:callMethod}({ ${7:param} }: { ${7:param}: ${8:string} }): ${9:void} {",
+      "        ${10:// Call method implementation}",
+      "    }",
+      "}"
+    ],
+    "description": "Create a basic Near smart contract class in TypeScript"
+  },
+  "Near Event Log": {
+    "prefix": "near-event-log",
+    "body": [
+      "near.log(",
+      "    JSON.stringify({",
+      "        standard: '${1:nep171}',",
+      "        version: '${2:1.0.0}',",
+      "        event: '${3:transfer}',",
+      "        data: {",
+      "            ${4:// event data}",
+      "        }",
+      "    })",
+      ");"
+    ],
+    "description": "Log a structured event"
+  }
+}
