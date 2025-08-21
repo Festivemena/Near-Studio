@@ -125,17 +125,19 @@ export class ContractManagerProvider implements vscode.WebviewViewProvider {
         setTimeout(() => {
             this._view?.webview.postMessage({
                 type: 'updateContracts',
-                contracts: contracts
+                contracts: contracts.map(c => ({
+                    ...c,
+                    uri: vscode.Uri.file(c.path).toString()
+                })
+                )
             });
         }, 100);
     }
 
-    private _selectContract(contractPath: string) {
-        let normalizedPath = path.resolve(contractPath);
-
-        const uri = vscode.Uri.file(normalizedPath);
+    private _selectContract(contractUri: string) {
+        const uri = vscode.Uri.parse(contractUri);
         vscode.commands.executeCommand('vscode.openFolder', uri, { forceNewWindow: false });
-        vscode.window.showInformationMessage(`Selected contract: ${path.basename(normalizedPath)}`);
+        vscode.window.showInformationMessage(`Selected contract: ${path.basename(uri.fsPath)}`);
     }
 
     private _findContracts(): any[] {
@@ -353,7 +355,7 @@ export class ContractManagerProvider implements vscode.WebviewViewProvider {
                                            contract.type === 'AssemblyScript' ? '⚡' : '📜';
                             
                             return \`
-                                <div class="contract-item" onclick="selectContract('\${contract.path}')">
+                                <div class="contract-item" onclick="selectContract('\${contract.uri}')">
                                     <div class="contract-name">📦 \${contract.name}</div>
                                     <div class="contract-type">\${typeIcon} \${contract.type}</div>
                                     <div class="contract-status \${statusClass}">\${statusIcon} \${contract.status}</div>
