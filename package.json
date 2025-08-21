@@ -39,7 +39,7 @@
     "workspaceContains:**/package.json"
   ],
   "main": "./out/extension.js",
-  "icon": "./logo.png",
+  "icon": "logo.png",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
