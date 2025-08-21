@@ -67,7 +67,7 @@ Before using this extension, ensure you have the following installed:
 4. Click Install
 
 **Manual Installation**:
-1. Download the latest `.vsix` file from [Releases](https://github.com/Festivemena/Near-Studio/releases)
+1. Download the latest `.vsix` file from [Releases](https://marketplace.visualstudio.com/items?itemName=Festivemena.near-studio)
 2. In VS Code, go to Extensions view (Ctrl+Shift+X)
 3. Click the "..." menu and select "Install from VSIX..."
 4. Select the downloaded `.vsix` file
