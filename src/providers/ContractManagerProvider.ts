@@ -131,9 +131,11 @@ export class ContractManagerProvider implements vscode.WebviewViewProvider {
     }
 
     private _selectContract(contractPath: string) {
-        const uri = vscode.Uri.file(contractPath);
+        let normalizedPath = path.resolve(contractPath);
+
+        const uri = vscode.Uri.file(normalizedPath);
         vscode.commands.executeCommand('vscode.openFolder', uri, { forceNewWindow: false });
-        vscode.window.showInformationMessage(`Selected contract: ${path.basename(contractPath)}`);
+        vscode.window.showInformationMessage(`Selected contract: ${path.basename(normalizedPath)}`);
     }
 
     private _findContracts(): any[] {

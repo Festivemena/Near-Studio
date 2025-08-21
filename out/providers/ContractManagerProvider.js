@@ -123,9 +123,10 @@ class ContractManagerProvider {
         }, 100);
     }
     _selectContract(contractPath) {
-        const uri = vscode.Uri.file(contractPath);
+        let normalizedPath = path.resolve(contractPath);
+        const uri = vscode.Uri.file(normalizedPath);
         vscode.commands.executeCommand('vscode.openFolder', uri, { forceNewWindow: false });
-        vscode.window.showInformationMessage(`Selected contract: ${path.basename(contractPath)}`);
+        vscode.window.showInformationMessage(`Selected contract: ${path.basename(normalizedPath)}`);
     }
     _findContracts() {
         const contracts = [];
