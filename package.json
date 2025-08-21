@@ -1,8 +1,8 @@
 {
   "name": "near-studio",
   "displayName": "Near Studio",
-  "description": "A comprehensive VS Code extension for developing, building, testing, and deploying NEAR Protocol smart contracts in Rust, JavaScript, TypeScript, and AssemblyScript.",
-  "version": "0.0.2",
+  "description": "A comprehensive VS Code extension for developing, building, testing, and deploying NEAR Protocol smart contracts in Rust, JavaScript and TypeScript.",
+  "version": "0.0.3",
   "publisher": "Festivemena",
   "license": "MIT",
   "engines": {
@@ -21,7 +21,6 @@
     "rust",
     "javascript",
     "typescript",
-    "assemblyscript",
     "wasm"
   ],
   "repository": {
@@ -29,21 +28,49 @@
     "url": "https://github.com/Festivemena/Near-Studio"
   },
   "bugs": {
-    "url": "https://github.com/Festivemena/Near-Studio/issues" },
+    "url": "https://github.com/Festivemena/Near-Studio/issues"
+  },
   "homepage": "https://github.com/Festivemena/Near-Studio#readme",
-
   "activationEvents": [
     "onLanguage:rust",
     "onLanguage:javascript",
     "onLanguage:typescript",
-    "onLanguage:assemblyscript",
     "workspaceContains:**/Cargo.toml",
-    "workspaceContains:**/package.json",
-    "workspaceContains:**/asconfig.json",
-    "workspaceContains:**/assembly/**"
+    "workspaceContains:**/package.json"
   ],
   "main": "./out/extension.js",
+  "icon": "./logo.png",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "near-studio-sidebar",
+          "title": "NEAR Studio",
+          "icon": "./nearstudio.svg"
+        }
+      ]
+    },
+    "views": {
+      "near-studio-sidebar": [
+        {
+          "type": "webview",
+          "id": "near-studio.projectExplorer",
+          "name": "Project Explorer",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "type": "webview",
+          "id": "near-studio.contractManager",
+          "name": "Contract Manager",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "id": "near-studio.accountManager",
+          "name": "Account Manager",
+          "when": "workspaceFolderCount > 0"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "nearExtension.createContract",
@@ -63,11 +90,6 @@
       {
         "command": "nearExtension.createTSContract",
         "title": "Create TypeScript Contract",
-        "category": "Near"
-      },
-      {
-        "command": "nearExtension.createASContract",
-        "title": "Create AssemblyScript Contract",
         "category": "Near"
       },
       {
@@ -96,11 +118,6 @@
         "category": "Near"
       },
       {
-        "command": "nearExtension.setupASToolchain",
-        "title": "Setup AssemblyScript Toolchain",
-        "category": "Near"
-      },
-      {
         "command": "nearExtension.optimizeContract",
         "title": "Optimize Contract for Production",
         "category": "Near"
@@ -109,6 +126,16 @@
         "command": "nearExtension.generateBindings",
         "title": "Generate Contract Bindings",
         "category": "Near"
+      },
+      {
+        "command": "near-studio.refreshAccounts",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "near-studio.addAccount",
+        "title": "Add Account",
+        "icon": "$(add)"
       }
     ],
     "menus": {
@@ -124,6 +151,18 @@
           "command": "nearExtension.createContract",
           "when": "workspaceFolderCount > 0"
         }
+      ],
+      "view/title": [
+        {
+          "command": "near-studio.refreshAccounts",
+          "when": "view == near-studio.accountManager",
+          "group": "navigation"
+        },
+        {
+          "command": "near-studio.addAccount",
+          "when": "view == near-studio.accountManager",
+          "group": "navigation"
+        }
       ]
     },
     "snippets": [
@@ -138,10 +177,6 @@
       {
         "language": "typescript",
         "path": "./snippets/ts-snippets.json"
-      },
-      {
-        "language": "assemblyscript",
-        "path": "./snippets/as-snippets.json"
       }
     ],
     "configuration": {
@@ -166,11 +201,6 @@
           "type": "string",
           "default": "cargo build --target wasm32-unknown-unknown --release",
           "description": "Command to build Rust contracts"
-        },
-        "nearExtension.asBuildCommand": {
-          "type": "string",
-          "default": "npm run asbuild",
-          "description": "Command to build AssemblyScript contracts"
         },
         "nearExtension.jsBuildCommand": {
           "type": "string",
@@ -219,6 +249,5 @@
     "near-api-js": "^2.1.0",
     "vsce": "^2.15.0",
     "wasm-opt": "^1.3.0"
-  },
-  "icon": "logo.png"
+  }
 }
