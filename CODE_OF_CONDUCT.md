@@ -22,7 +22,7 @@ Unacceptable behavior:
 
 ## Enforcement
 
-- Report issues to project maintainers at **[insert contact email]**
+- Report issues to project maintainers [@festivemena](https://t.me/OxF3stus)
 - Reports will be reviewed and investigated
 - Consequences may include warnings or bans
 
