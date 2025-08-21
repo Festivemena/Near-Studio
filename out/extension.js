@@ -29,22 +29,49 @@ const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const child_process_1 = require("child_process");
 const util_1 = require("util");
+const ProjectExplorerProvider_1 = require("./providers/ProjectExplorerProvider");
+const ContractManagerProvider_1 = require("./providers/ContractManagerProvider");
+const AccountManagerProvider_1 = require("./providers/AccountManagerProvider");
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
 function activate(context) {
     console.log('Near Smart Contracts extension is now active!');
+    // Register webview providers
+    const projectExplorerProvider = new ProjectExplorerProvider_1.ProjectExplorerProvider(context.extensionUri);
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider('near-studio.projectExplorer', // Must match package.json
+    projectExplorerProvider));
+    const contractManagerProvider = new ContractManagerProvider_1.ContractManagerProvider(context.extensionUri);
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider('near-studio.contractManager', contractManagerProvider));
+    // Register disposal
+    context.subscriptions.push(contractManagerProvider);
+    // Register tree data provider - THIS IS THE KEY FIX
+    const accountManagerProvider = new AccountManagerProvider_1.AccountManagerProvider();
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('near-studio.accountManager', // Must match package.json exactly
+    accountManagerProvider));
+    // Register commands
+    context.subscriptions.push(vscode.commands.registerCommand('near-studio.refreshAccounts', () => {
+        accountManagerProvider.refresh();
+    }), vscode.commands.registerCommand('near-studio.addAccount', async () => {
+        const accountId = await vscode.window.showInputBox({
+            prompt: 'Enter NEAR account ID',
+        });
+        if (accountId) {
+            const config = vscode.workspace.getConfiguration('nearExtension');
+            await config.update('accountId', accountId, vscode.ConfigurationTarget.Workspace);
+            accountManagerProvider.refresh();
+            vscode.window.showInformationMessage(`Added account: ${accountId}`);
+        }
+    }));
     // Register all commands
     const commands = [
         vscode.commands.registerCommand('nearExtension.createContract', createContract),
         vscode.commands.registerCommand('nearExtension.createRustContract', () => createSpecificContract('rust')),
         vscode.commands.registerCommand('nearExtension.createJSContract', () => createSpecificContract('javascript')),
         vscode.commands.registerCommand('nearExtension.createTSContract', () => createSpecificContract('typescript')),
-        vscode.commands.registerCommand('nearExtension.createASContract', () => createSpecificContract('assemblyscript')),
         vscode.commands.registerCommand('nearExtension.buildContract', buildContract),
         vscode.commands.registerCommand('nearExtension.deployContract', deployContract),
         vscode.commands.registerCommand('nearExtension.testContract', testContract),
         vscode.commands.registerCommand('nearExtension.initializeProject', initializeProject),
         vscode.commands.registerCommand('nearExtension.setupRustToolchain', setupRustToolchain),
-        vscode.commands.registerCommand('nearExtension.setupASToolchain', setupAssemblyScriptToolchain),
         vscode.commands.registerCommand('nearExtension.optimizeContract', optimizeContract),
         vscode.commands.registerCommand('nearExtension.generateBindings', generateBindings)
     ];
@@ -52,25 +79,6 @@ function activate(context) {
     // Register task provider
     const taskProvider = vscode.tasks.registerTaskProvider('near', new NearTaskProvider());
     context.subscriptions.push(taskProvider);
-    // Register language configuration for AssemblyScript
-    context.subscriptions.push(vscode.languages.setLanguageConfiguration('assemblyscript', {
-        comments: {
-            lineComment: '//',
-            blockComment: ['/*', '*/']
-        },
-        brackets: [
-            ['{', '}'],
-            ['[', ']'],
-            ['(', ')']
-        ],
-        autoClosingPairs: [
-            { open: '{', close: '}' },
-            { open: '[', close: ']' },
-            { open: '(', close: ')' },
-            { open: '"', close: '"' },
-            { open: "'", close: "'" }
-        ]
-    }));
     // Check for Near projects and suggest setup
     checkForNearProject();
     validateToolchains();
@@ -80,8 +88,7 @@ async function createContract() {
     const templates = [
         { name: 'Rust Contract', language: 'rust', description: 'High-performance contract with near-sdk-rs' },
         { name: 'JavaScript Contract', language: 'javascript', description: 'Simple contract with near-sdk-js' },
-        { name: 'TypeScript Contract', language: 'typescript', description: 'Type-safe contract with near-sdk-js' },
-        { name: 'AssemblyScript Contract', language: 'assemblyscript', description: 'WebAssembly contract with near-sdk-as' }
+        { name: 'TypeScript Contract', language: 'typescript', description: 'Type-safe contract with near-sdk-js' }
     ];
     const selected = await vscode.window.showQuickPick(templates.map(t => ({ label: t.name, description: t.description, template: t })), { placeHolder: 'Select contract type' });
     if (!selected)
@@ -130,8 +137,6 @@ function getMainContractFile(workspacePath, contractName, language) {
             return path.join(contractDir, 'src', 'index.js');
         case 'typescript':
             return path.join(contractDir, 'src', 'index.ts');
-        case 'assemblyscript':
-            return path.join(contractDir, 'assembly', 'index.ts');
         default:
             return null;
     }
@@ -150,9 +155,6 @@ async function createContractFiles(workspacePath, contractName, language) {
             break;
         case 'typescript':
             await createJSContract(contractDir, contractName, true);
-            break;
-        case 'assemblyscript':
-            await createAssemblyScriptContract(contractDir, contractName);
             break;
     }
 }
@@ -556,204 +558,6 @@ export class ${capitalizeFirstLetter(contractName.replace(/-/g, '_'))} {
     }
     await createBuildScripts(contractDir, isTypeScript ? 'typescript' : 'javascript', contractName);
 }
-async function createAssemblyScriptContract(contractDir, contractName) {
-    // Create package.json
-    const packageJson = {
-        name: contractName,
-        version: "1.0.0",
-        description: `Near AssemblyScript smart contract: ${contractName}`,
-        scripts: {
-            asbuild: "npm run asbuild:debug && npm run asbuild:release",
-            "asbuild:debug": "asc assembly/index.ts --target debug --outFile build/debug.wasm --transform near-sdk-as/lib/transform --use abort=",
-            "asbuild:release": "asc assembly/index.ts --target release --outFile build/release.wasm --transform near-sdk-as/lib/transform --use abort= --optimize",
-            build: "npm run asbuild:release",
-            test: "asp --verbose",
-            "test:ci": "npm test 2>&1",
-            deploy: `near deploy --wasmFile build/release.wasm --accountId \${NEAR_ACCOUNT}`,
-            "deploy:testnet": `near deploy --wasmFile build/release.wasm --accountId \${NEAR_ACCOUNT} --networkId testnet`,
-            dev: "npm run asbuild:debug && npm run deploy:testnet"
-        },
-        dependencies: {
-            "near-sdk-as": "^3.3.0"
-        },
-        devDependencies: {
-            "assemblyscript": "^0.20.0",
-            "as-pect": "^6.2.4"
-        }
-    };
-    fs.writeFileSync(path.join(contractDir, 'package.json'), JSON.stringify(packageJson, null, 2));
-    // Create asconfig.json
-    const asconfig = {
-        targets: {
-            debug: {
-                binaryFile: "build/debug.wasm",
-                textFile: "build/debug.wat",
-                sourceMap: true,
-                debug: true
-            },
-            release: {
-                binaryFile: "build/release.wasm",
-                textFile: "build/release.wat",
-                sourceMap: false,
-                optimizeLevel: 3,
-                shrinkLevel: 1,
-                converge: false,
-                noAssert: false
-            }
-        },
-        options: {
-            bindings: "esm"
-        }
-    };
-    fs.writeFileSync(path.join(contractDir, 'asconfig.json'), JSON.stringify(asconfig, null, 2));
-    // Create assembly directory and index.ts
-    const assemblyDir = path.join(contractDir, 'assembly');
-    if (!fs.existsSync(assemblyDir)) {
-        fs.mkdirSync(assemblyDir);
-    }
-    const contractCode = `import { Context, logging, storage, PersistentUnorderedMap } from 'near-sdk-as';
-
-@nearBindgen
-export class ContractMetadata {
-    version: string;
-    owner: string;
-    createdAt: u64;
-
-    constructor(version: string, owner: string, createdAt: u64) {
-        this.version = version;
-        this.owner = owner;
-        this.createdAt = createdAt;
-    }
-}
-
-const data = new PersistentUnorderedMap<string, string>("data");
-
-// Contract state
-let owner: string = "";
-let metadata: ContractMetadata;
-
-// Initialize contract
-export function init(contractOwner: string = ""): void {
-    assert(!isInitialized(), "Contract is already initialized");
-    
-    owner = contractOwner || Context.sender;
-    metadata = new ContractMetadata("1.0.0", owner, Context.blockTimestamp);
-    
-    storage.set("owner", owner);
-    storage.set("metadata", metadata);
-}
-
-// View functions
-export function getMetadata(): ContractMetadata {
-    assertInitialized();
-    return storage.getSome<ContractMetadata>("metadata");
-}
-
-export function getOwner(): string {
-    assertInitialized();
-    return storage.getSome<string>("owner");
-}
-
-export function getData(key: string): string | null {
-    assertInitialized();
-    return data.get(key);
-}
-
-export function hello(name: string): string {
-    return \`Hello, \${name}! This is ${capitalizeFirstLetter(contractName.replace(/-/g, '_'))} AssemblyScript contract.\`;
-}
-
-// Change functions
-export function setData(key: string, value: string): void {
-    assertInitialized();
-    assertOwner();
-    
-    data.set(key, value);
-    
-    logging.log(\`DATA_SET: {"key": "\${key}", "value": "\${value}"}\`);
-}
-
-@payable
-export function donate(): string {
-    assertInitialized();
-    
-    const deposit = Context.attachedDeposit;
-    const donor = Context.sender;
-    
-    logging.log(\`DONATION: {"donor": "\${donor}", "amount": "\${deposit.toString()}"}\`);
-    
-    return \`Thank you \${donor} for donating \${deposit.toString()} yoctoNEAR!\`;
-}
-
-// Private helper functions
-function isInitialized(): bool {
-    return storage.contains("owner");
-}
-
-function assertInitialized(): void {
-    assert(isInitialized(), "Contract is not initialized");
-}
-
-function assertOwner(): void {
-    const contractOwner = storage.getSome<string>("owner");
-    assert(Context.sender == contractOwner, "Only the owner can call this method");
-}
-`;
-    fs.writeFileSync(path.join(assemblyDir, 'index.ts'), contractCode);
-    // Create __tests__ directory and test files
-    const testsDir = path.join(assemblyDir, '__tests__');
-    if (!fs.existsSync(testsDir)) {
-        fs.mkdirSync(testsDir);
-    }
-    const testCode = `import { init, hello, setData, getData, getOwner } from '../index';
-import { Context, VMContext } from 'near-sdk-as';
-
-describe('${capitalizeFirstLetter(contractName.replace(/-/g, '_'))} Contract', () => {
-    beforeEach(() => {
-        VMContext.setCurrent_account_id('contract.testnet');
-        VMContext.setSigner_account_id('alice.testnet');
-        VMContext.setPredecessor_account_id('alice.testnet');
-    });
-
-    it('should initialize properly', () => {
-        init('alice.testnet');
-        expect(getOwner()).toBe('alice.testnet');
-    });
-
-    it('should say hello', () => {
-        const result = hello('World');
-        expect(result).toContain('Hello, World!');
-        expect(result).toContain('AssemblyScript contract');
-    });
-
-    it('should set and get data', () => {
-        init('alice.testnet');
-        setData('test_key', 'test_value');
-        expect(getData('test_key')).toBe('test_value');
-    });
-
-    it('should return null for non-existent keys', () => {
-        expect(getData('non_existent_key')).toBeNull();
-    });
-});
-`;
-    fs.writeFileSync(path.join(testsDir, 'index.spec.ts'), testCode);
-    // Create as-pect config
-    const aspectConfig = {
-        types: ["assembly/index.ts"],
-        include: ["assembly/__tests__/**/*.spec.ts"],
-        add: ["assembly/__tests__/**/*.include.ts"],
-        flags: {
-            "--runtime": ["incremental"],
-            "--debug": [],
-            "--binaryFile": ["output.wasm"]
-        },
-        disclude: [/node_modules/],
-        outputBinary: false
-    };
-    fs.writeFileSync(path.join(contractDir, 'as-pect.config.js'), `module.exports = ${JSON.stringify(aspectConfig, null, 2)};`);
-    await createBuildScripts(contractDir, 'assemblyscript', contractName);
-}
 async function createBuildScripts(contractDir, language, contractName) {
     // Create build directory
     const buildDir = path.join(contractDir, 'build');
@@ -811,19 +615,6 @@ echo "Contract built successfully: build/${contractName}.wasm"
             fs.writeFileSync(path.join(contractDir, 'build.sh'), jsBuildScript);
             fs.chmodSync(path.join(contractDir, 'build.sh'), 0o755);
             break;
-        case 'assemblyscript':
-            // Create build scripts for AssemblyScript
-            const asBuildScript = `#!/bin/bash
-set -e
-
-echo "Building AssemblyScript contract..."
-npm run asbuild:release
-
-echo "Contract built successfully: build/release.wasm"
-`;
-            fs.writeFileSync(path.join(contractDir, 'build.sh'), asBuildScript);
-            fs.chmodSync(path.join(contractDir, 'build.sh'), 0o755);
-            break;
     }
     // Create deployment script
     const deployScript = `#!/bin/bash
@@ -844,9 +635,6 @@ WASM_FILE=""
 case "${language}" in
     "rust"|"javascript"|"typescript")
         WASM_FILE="build/${contractName}.wasm"
-        ;;
-    "assemblyscript")
-        WASM_FILE="build/release.wasm"
         ;;
 esac
 
@@ -928,9 +716,6 @@ async function buildContract() {
         case 'typescript':
             buildCommand = config.get('jsBuildCommand', 'npm run build');
             break;
-        case 'assemblyscript':
-            buildCommand = config.get('asBuildCommand', 'npm run asbuild');
-            break;
     }
     terminal.sendText(buildCommand);
     terminal.show();
@@ -948,13 +733,8 @@ async function buildContract() {
 async function detectProjectType(workspacePath) {
     const cargoPath = path.join(workspacePath, 'Cargo.toml');
     const packagePath = path.join(workspacePath, 'package.json');
-    const asconfigPath = path.join(workspacePath, 'asconfig.json');
-    const assemblyPath = path.join(workspacePath, 'assembly');
     if (fs.existsSync(cargoPath)) {
         return 'rust';
-    }
-    else if (fs.existsSync(asconfigPath) || fs.existsSync(assemblyPath)) {
-        return 'assemblyscript';
     }
     else if (fs.existsSync(packagePath)) {
         // Check if it's a Near JS/TS project
@@ -1007,9 +787,6 @@ async function deployContract() {
         case 'typescript':
             wasmFile = `build/${contractName}.wasm`;
             break;
-        case 'assemblyscript':
-            wasmFile = 'build/release.wasm';
-            break;
     }
     const terminal = vscode.window.createTerminal('Near Deploy');
     terminal.sendText(`near deploy --wasmFile ${wasmFile} --accountId ${accountId} --networkId ${network}`);
@@ -1033,9 +810,6 @@ async function testContract() {
         case 'typescript':
             testCommand = 'npm test';
             break;
-        case 'assemblyscript':
-            testCommand = 'npm run test';
-            break;
         default:
             vscode.window.showErrorMessage('No Near contract found in this workspace');
             return;
@@ -1052,8 +826,7 @@ async function initializeProject() {
     const projectTypes = [
         { label: 'Rust Project', description: 'Initialize a new Rust-based Near project', value: 'rust' },
         { label: 'JavaScript Project', description: 'Initialize a new JavaScript-based Near project', value: 'javascript' },
-        { label: 'TypeScript Project', description: 'Initialize a new TypeScript-based Near project', value: 'typescript' },
-        { label: 'AssemblyScript Project', description: 'Initialize a new AssemblyScript-based Near project', value: 'assemblyscript' }
+        { label: 'TypeScript Project', description: 'Initialize a new TypeScript-based Near project', value: 'typescript' }
     ];
     const selected = await vscode.window.showQuickPick(projectTypes, {
         placeHolder: 'Select project type'
@@ -1070,9 +843,6 @@ async function initializeProject() {
             break;
         case 'typescript':
             terminal.sendText('npm init -y && npm install near-sdk-js && npm install -D typescript @types/node');
-            break;
-        case 'assemblyscript':
-            terminal.sendText('npm init -y && npm install near-sdk-as assemblyscript as-pect');
             break;
     }
     terminal.show();
@@ -1093,20 +863,6 @@ async function setupRustToolchain() {
     }
     terminal.show();
     vscode.window.showInformationMessage('Setting up Rust toolchain for Near development...');
-}
-async function setupAssemblyScriptToolchain() {
-    const terminal = vscode.window.createTerminal('AssemblyScript Setup');
-    const commands = [
-        'echo "Setting up AssemblyScript toolchain for Near development..."',
-        'npm install -g assemblyscript',
-        'npm install -g as-pect',
-        'echo "AssemblyScript toolchain setup complete!"'
-    ];
-    for (const command of commands) {
-        terminal.sendText(command);
-    }
-    terminal.show();
-    vscode.window.showInformationMessage('Setting up AssemblyScript toolchain for Near development...');
 }
 async function optimizeContract() {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -1136,9 +892,6 @@ async function optimizeContract() {
         case 'javascript':
         case 'typescript':
             terminal.sendText('npm run build');
-            break;
-        case 'assemblyscript':
-            terminal.sendText('npm run asbuild:release');
             break;
     }
     terminal.show();
@@ -1236,9 +989,6 @@ class NearTaskProvider {
                 case 'typescript':
                     buildCommand = 'npm run build';
                     break;
-                case 'assemblyscript':
-                    buildCommand = 'npm run asbuild';
-                    break;
             }
             const buildTask = new vscode.Task({ type: 'near', command: 'build' }, vscode.TaskScope.Workspace, `Build ${projectType} Contract`, 'near', new vscode.ShellExecution(buildCommand));
             tasks.push(buildTask);
@@ -1250,7 +1000,6 @@ class NearTaskProvider {
                     break;
                 case 'javascript':
                 case 'typescript':
-                case 'assemblyscript':
                     testCommand = 'npm test';
                     break;
             }

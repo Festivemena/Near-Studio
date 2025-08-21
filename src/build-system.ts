@@ -8,7 +8,7 @@ import { promisify } from 'util';
 const execAsync = promisify(exec);
 
 export interface BuildConfig {
-    language: 'rust' | 'javascript' | 'typescript' | 'assemblyscript';
+    language: 'rust' | 'javascript' | 'typescript';
     projectPath: string;
     contractName: string;
     outputPath: string;
@@ -35,8 +35,6 @@ export class NearBuildSystem {
                 case 'javascript':
                 case 'typescript':
                     return await this.buildJSContract(config);
-                case 'assemblyscript':
-                    return await this.buildAssemblyScriptContract(config);
                 default:
                     throw new Error(`Unsupported language: ${config.language}`);
             }
@@ -139,52 +137,6 @@ export class NearBuildSystem {
         return true;
     }
 
-    private async buildAssemblyScriptContract(config: BuildConfig): Promise<boolean> {
-        const { projectPath, contractName, outputPath, optimization, debug } = config;
-
-        // Ensure dependencies are installed
-        if (!fs.existsSync(path.join(projectPath, 'node_modules'))) {
-            this.outputChannel.appendLine('Installing dependencies...');
-            await execAsync('npm install', { cwd: projectPath });
-        }
-
-        // Build the contract
-        this.outputChannel.appendLine('Building AssemblyScript contract...');
-        
-        const buildTarget = debug ? 'asbuild:debug' : 'asbuild:release';
-        const { stdout, stderr } = await execAsync(`npm run ${buildTarget}`, {
-            cwd: projectPath
-        });
-
-        if (stderr) {
-            this.outputChannel.appendLine(`Warnings: ${stderr}`);
-        }
-        
-        this.outputChannel.appendLine(stdout);
-
-        // Verify output file exists
-        const wasmFile = path.join(projectPath, 'build', debug ? 'debug.wasm' : 'release.wasm');
-        if (!fs.existsSync(wasmFile)) {
-            throw new Error('WASM file not generated');
-        }
-
-        // Copy to output directory with contract name
-        if (!fs.existsSync(outputPath)) {
-            fs.mkdirSync(outputPath, { recursive: true });
-        }
-        
-        const targetWasm = path.join(outputPath, `${contractName}.wasm`);
-        fs.copyFileSync(wasmFile, targetWasm);
-
-        // Additional optimization for release builds
-        if (optimization && !debug) {
-            await this.optimizeWasm(targetWasm);
-        }
-
-        this.outputChannel.appendLine(`✅ AssemblyScript contract built successfully: ${targetWasm}`);
-        return true;
-    }
-
     private async ensureRustToolchain(): Promise<void> {
         try {
             // Check if wasm32-unknown-unknown target is installed
@@ -233,9 +185,6 @@ export class NearBuildSystem {
                 case 'typescript':
                     testCommand = 'npm test';
                     break;
-                case 'assemblyscript':
-                    testCommand = 'npm run test';
-                    break;
                 default:
                     throw new Error(`Testing not supported for language: ${config.language}`);
             }
@@ -271,9 +220,6 @@ export class NearBuildSystem {
                 case 'rust':
                 case 'javascript':
                 case 'typescript':
-                    wasmFile = path.join(config.outputPath, `${config.contractName}.wasm`);
-                    break;
-                case 'assemblyscript':
                     wasmFile = path.join(config.outputPath, `${config.contractName}.wasm`);
                     break;
                 default:
