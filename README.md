@@ -28,7 +28,7 @@ A comprehensive VS Code extension for developing, building, testing, and deployi
 ### 🎛️ **Integrated Sidebar Panel**
 - **Project Explorer**: Quick-access buttons for contract creation, building, and deployment
 - **Contract Manager**: Automatic detection and status tracking of NEAR contracts in your workspace
-- **Account Manager**: Manage NEAR accounts with easy configuration and switching
+- **Account Manager**: Manage NEAR accounts with easy configuration, get gas for testnet and switching accounts
 
 ### 🔧 **Developer Experience**
 - **Task integration**: Built-in VS Code tasks for Near operations
