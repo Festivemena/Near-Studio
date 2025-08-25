@@ -23,6 +23,7 @@ A comprehensive VS Code extension for developing, building, testing, and deployi
 - **Toolchain management**: Automated setup for Rust, and Node.js environments
 - **Contract optimization**: Production-ready optimization for WASM outputs
 - **Binding generation**: Generate client bindings for contract interaction
+- **Account Manager**: Create and import Mainnet/Testnet accounts with 1-click
 
 ### 🎛️ **Integrated Sidebar Panel**
 - **Project Explorer**: Quick-access buttons for contract creation, building, and deployment
