@@ -33,25 +33,124 @@ const https = __importStar(require("https"));
 const ProjectExplorerProvider_1 = require("./providers/ProjectExplorerProvider");
 const ContractManagerProvider_1 = require("./providers/ContractManagerProvider");
 const AccountManagerProvider_1 = require("./providers/AccountManagerProvider");
+const VisualDesignProvider_1 = require("./providers/VisualDesignProvider");
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
 function activate(context) {
     console.log('Near Smart Contracts extension is now active!');
     // Register webview providers
     const projectExplorerProvider = new ProjectExplorerProvider_1.ProjectExplorerProvider(context.extensionUri);
-    context.subscriptions.push(vscode.window.registerWebviewViewProvider('near-studio.projectExplorer', // Must match package.json
-    projectExplorerProvider));
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider('near-studio.projectExplorer', projectExplorerProvider));
+    const visualDesignProvider = new VisualDesignProvider_1.VisualDesignProvider(context.extensionUri);
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider(VisualDesignProvider_1.VisualDesignProvider.viewType, visualDesignProvider));
+    context.subscriptions.push(visualDesignProvider);
+    const visualDesignerCommands = [
+        vscode.commands.registerCommand('nearExtension.openVisualDesigner', async () => {
+            await vscode.commands.executeCommand(`${VisualDesignProvider_1.VisualDesignProvider.viewType}.focus`);
+        }),
+        vscode.commands.registerCommand('nearExtension.newContractFromTemplate', async () => {
+            const templates = [
+                { label: '🏪 Simple Storage', description: 'Basic key-value storage contract', value: 'simple-storage' },
+                { label: '🪙 Token Contract', description: 'NEP-141 fungible token', value: 'token-contract' },
+                { label: '🎨 NFT Contract', description: 'NEP-171 non-fungible token', value: 'nft-contract' },
+                { label: '🗳️ Voting Contract', description: 'Simple voting mechanism', value: 'voting-contract' },
+                { label: '💰 Escrow Contract', description: 'Payment escrow system', value: 'escrow-contract' }
+            ];
+            const selected = await vscode.window.showQuickPick(templates, {
+                placeHolder: 'Choose a contract template to start with'
+            });
+            if (selected) {
+                await vscode.commands.executeCommand('nearExtension.openVisualDesigner');
+                visualDesignProvider.postMessage({
+                    command: 'loadTemplate',
+                    templateName: selected.value
+                });
+            }
+        }),
+        vscode.commands.registerCommand('nearExtension.importContractDesign', async () => {
+            const files = await vscode.window.showOpenDialog({
+                canSelectFiles: true,
+                canSelectMany: false,
+                filters: {
+                    'NEAR Design Files': ['json']
+                },
+                openLabel: 'Import Design'
+            });
+            if (files && files.length > 0) {
+                try {
+                    const designData = fs.readFileSync(files[0].fsPath, 'utf8');
+                    const design = JSON.parse(designData);
+                    await vscode.commands.executeCommand('nearExtension.openVisualDesigner');
+                    visualDesignProvider.postMessage({
+                        command: 'importDesign',
+                        design: design
+                    });
+                    vscode.window.showInformationMessage('Contract design imported successfully!');
+                }
+                catch (error) {
+                    vscode.window.showErrorMessage(`Failed to import design: ${error}`);
+                }
+            }
+        }),
+        vscode.commands.registerCommand('nearExtension.generateFromVisualDesign', async () => {
+            const languages = [
+                { label: '🦀 Rust', description: 'High-performance, compiled to WASM', value: 'rust' },
+                { label: '📜 JavaScript', description: 'Quick development with near-sdk-js', value: 'javascript' },
+                { label: '📘 TypeScript', description: 'Type-safe JavaScript', value: 'typescript' }
+            ];
+            const selected = await vscode.window.showQuickPick(languages, {
+                placeHolder: 'Select target language for code generation'
+            });
+            if (selected) {
+                visualDesignProvider.postMessage({
+                    command: 'generateCodeRequest',
+                    language: selected.value
+                });
+            }
+        }),
+        vscode.commands.registerCommand('nearExtension.validateDesign', async () => {
+            visualDesignProvider.postMessage({
+                command: 'validateDesign'
+            });
+        }),
+        vscode.commands.registerCommand('nearExtension.exportDesignAsImage', async () => {
+            visualDesignProvider.postMessage({
+                command: 'exportAsImage'
+            });
+        }),
+        vscode.commands.registerCommand('nearExtension.shareDesign', async () => {
+            visualDesignProvider.postMessage({
+                command: 'shareDesign'
+            });
+        }),
+        // Add context menu for converting existing contracts to visual design
+        vscode.commands.registerCommand('nearExtension.convertToVisualDesign', async (uri) => {
+            if (!uri) {
+                const activeEditor = vscode.window.activeTextEditor;
+                if (activeEditor) {
+                    uri = activeEditor.document.uri;
+                }
+            }
+            if (uri) {
+                await convertExistingContractToVisualDesign(uri, visualDesignProvider);
+            }
+        })
+    ];
+    visualDesignerCommands.forEach(command => context.subscriptions.push(command));
+    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    statusBarItem.text = "$(symbol-class) NEAR Designer";
+    statusBarItem.command = 'nearExtension.openVisualDesigner';
+    statusBarItem.tooltip = 'Open NEAR Contract Visual Designer';
+    statusBarItem.show();
+    context.subscriptions.push(statusBarItem);
     const contractManagerProvider = new ContractManagerProvider_1.ContractManagerProvider(context.extensionUri);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('near-studio.contractManager', contractManagerProvider));
-    // Register disposal
     context.subscriptions.push(contractManagerProvider);
     // Register enhanced AccountManagerProvider
     const accountManagerProvider = new AccountManagerProvider_1.AccountManagerProvider();
     context.subscriptions.push(vscode.window.registerTreeDataProvider('near-studio.accountManager', accountManagerProvider));
     context.subscriptions.push(accountManagerProvider);
     // Register wallet management commands
-    context.subscriptions.push(
-    // Enhanced account management commands
-    vscode.commands.registerCommand('near-studio.refreshAccounts', () => {
+    context.subscriptions.push(vscode.commands.registerCommand('near-studio.refreshAccounts', () => {
         accountManagerProvider.refresh();
     }), vscode.commands.registerCommand('near-studio.addAccount', async () => {
         const options = [
@@ -67,9 +166,7 @@ function activate(context) {
         else if (selected?.label.includes('Import')) {
             vscode.commands.executeCommand('near-studio.importWallet');
         }
-    }), 
-    // New wallet management commands
-    vscode.commands.registerCommand('near-studio.createWallet', async (network) => {
+    }), vscode.commands.registerCommand('near-studio.createWallet', async (network) => {
         if (!network) {
             const networkOptions = [
                 { label: 'Testnet', description: 'Create testnet account (free test tokens)', value: 'testnet' },
@@ -104,7 +201,6 @@ function activate(context) {
             await accountManagerProvider.switchToAccount(accountItem.label, accountItem.network);
         }
         else {
-            // Show account switcher
             await showAccountSwitcher(accountManagerProvider);
         }
     }), vscode.commands.registerCommand('near-studio.disconnectAccount', async (accountItem) => {
@@ -137,7 +233,6 @@ function activate(context) {
                 cancellable: false
             }, async () => {
                 try {
-                    // Request testnet tokens
                     const response = await fetch('https://helper.testnet.near.org/account', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -155,7 +250,6 @@ function activate(context) {
                     }
                 }
                 catch (error) {
-                    // Fallback to NEAR CLI funding
                     try {
                         await execAsync(`near send testnet ${accountItem.label} 10 --networkId testnet`);
                         vscode.window.showInformationMessage(`✅ ${accountItem.label} funded with test tokens!`);
@@ -173,7 +267,7 @@ function activate(context) {
                 ? `https://explorer.testnet.near.org/accounts/${accountItem.label}`
                 : accountItem.network === 'mainnet'
                     ? `https://explorer.near.org/accounts/${accountItem.label}`
-                    : `http://localhost:3030/accounts/${accountItem.label}`; // sandbox
+                    : `http://localhost:3030/accounts/${accountItem.label}`;
             vscode.env.openExternal(vscode.Uri.parse(explorerUrl));
         }
     }), vscode.commands.registerCommand('near-studio.refreshAccountBalance', async (accountItem) => {
@@ -186,21 +280,17 @@ function activate(context) {
                 accountManagerProvider.refresh();
             });
         }
-    }), 
-    // Bulk account operations
-    vscode.commands.registerCommand('near-studio.exportAccounts', async () => {
+    }), vscode.commands.registerCommand('near-studio.exportAccounts', async () => {
         const config = vscode.workspace.getConfiguration('nearExtension');
         const accounts = config.get('accounts') || {};
         if (Object.keys(accounts).length === 0) {
             vscode.window.showInformationMessage('No accounts to export');
             return;
         }
-        // Remove sensitive data for export
         const exportData = Object.entries(accounts).reduce((acc, [id, account]) => {
             acc[id] = {
                 id: account.id,
                 network: account.network,
-                // Don't export private keys for security
                 publicKey: account.publicKey
             };
             return acc;
@@ -241,6 +331,202 @@ function activate(context) {
     validateToolchains();
 }
 exports.activate = activate;
+// Helper function to convert existing contracts to visual design
+async function convertExistingContractToVisualDesign(uri, provider) {
+    try {
+        const document = await vscode.workspace.openTextDocument(uri);
+        const content = document.getText();
+        const language = document.languageId;
+        let parsedComponents = [];
+        if (language === 'rust') {
+            parsedComponents = parseRustContract(content);
+        }
+        else if (language === 'javascript' || language === 'typescript') {
+            parsedComponents = parseJSContract(content);
+        }
+        if (parsedComponents.length > 0) {
+            const design = {
+                components: parsedComponents,
+                metadata: {
+                    name: path.basename(uri.fsPath, path.extname(uri.fsPath)),
+                    version: '1.0.0',
+                    language: language === 'rust' ? 'rust' : (language === 'typescript' ? 'typescript' : 'javascript'),
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    convertedFrom: uri.fsPath
+                }
+            };
+            await vscode.commands.executeCommand('nearExtension.openVisualDesigner');
+            provider.postMessage({
+                command: 'loadConvertedDesign',
+                design: design
+            });
+            vscode.window.showInformationMessage(`Converted ${parsedComponents.length} components from existing contract!`);
+        }
+        else {
+            vscode.window.showWarningMessage('No recognizable NEAR contract patterns found in this file.');
+        }
+    }
+    catch (error) {
+        vscode.window.showErrorMessage(`Failed to convert contract: ${error}`);
+    }
+}
+function parseRustContract(content) {
+    const components = [];
+    let componentId = 1;
+    // Parse struct fields (state variables)
+    const structRegex = /#\[near_bindgen\][\s\S]*?struct\s+(\w+)\s*{([\s\S]*?)}/;
+    const structMatch = content.match(structRegex);
+    if (structMatch) {
+        const fieldsContent = structMatch[2];
+        const fieldRegex = /pub\s+(\w+):\s*([^,\n]+)/g;
+        let fieldMatch;
+        let yPosition = 50;
+        while ((fieldMatch = fieldRegex.exec(fieldsContent)) !== null) {
+            const [, name, type] = fieldMatch;
+            const cleanType = type.trim().replace(/,$/, '');
+            let componentType = 'state-variable';
+            if (cleanType.includes('UnorderedMap')) {
+                componentType = 'mapping';
+            }
+            else if (cleanType.includes('Vector') || cleanType.includes('UnorderedSet')) {
+                componentType = 'collection';
+            }
+            components.push({
+                id: `component-${componentId++}`,
+                type: componentType,
+                template: {
+                    title: componentType === 'mapping' ? 'Mapping' :
+                        componentType === 'collection' ? 'Collection' : 'State Variable',
+                    content: `pub ${name}: ${cleanType}`,
+                    properties: {
+                        name: name,
+                        type: cleanType,
+                        description: `Auto-converted: ${name}`
+                    }
+                },
+                x: 50,
+                y: yPosition
+            });
+            yPosition += 120;
+        }
+    }
+    // Parse functions
+    const functionRegex = /(?:pub\s+fn\s+|#\[payable\]\s*pub\s+fn\s+)(\w+)\s*\([^)]*\)(?:\s*->\s*([^{]+))?\s*{/g;
+    let functionMatch;
+    let xPosition = 350;
+    let yPosition = 50;
+    while ((functionMatch = functionRegex.exec(content)) !== null) {
+        const [fullMatch, name, returnType] = functionMatch;
+        const isPayable = fullMatch.includes('#[payable]');
+        const isMutable = fullMatch.includes('&mut self');
+        let componentType = 'view-method';
+        if (isPayable) {
+            componentType = 'payable-method';
+        }
+        else if (isMutable) {
+            componentType = 'call-method';
+        }
+        components.push({
+            id: `component-${componentId++}`,
+            type: componentType,
+            template: {
+                title: componentType === 'payable-method' ? 'Payable Method' :
+                    componentType === 'call-method' ? 'Call Method' : 'View Method',
+                content: fullMatch.split('{')[0].trim(),
+                properties: {
+                    name: name,
+                    returnType: returnType?.trim() || 'void',
+                    description: `Auto-converted: ${name}`,
+                    mutability: isMutable ? 'mutable' : 'immutable'
+                }
+            },
+            x: xPosition,
+            y: yPosition
+        });
+        yPosition += 120;
+        if (yPosition > 500) {
+            yPosition = 50;
+            xPosition += 300;
+        }
+    }
+    return components;
+}
+function parseJSContract(content) {
+    const components = [];
+    let componentId = 1;
+    // Parse class fields
+    const classRegex = /@NearBindgen.*?class\s+(\w+).*?{([\s\S]*?)}/;
+    const classMatch = content.match(classRegex);
+    if (classMatch) {
+        const classContent = classMatch[2];
+        // Parse state variables
+        const fieldRegex = /(\w+)(?::\s*([^=\n]+))?\s*=\s*([^;\n]+)/g;
+        let fieldMatch;
+        let yPosition = 50;
+        while ((fieldMatch = fieldRegex.exec(classContent)) !== null) {
+            const [, name, type, initialValue] = fieldMatch;
+            let componentType = 'state-variable';
+            if (initialValue.includes('UnorderedMap') || initialValue.includes('new Map')) {
+                componentType = 'mapping';
+            }
+            else if (initialValue.includes('Vector') || initialValue.includes('Array')) {
+                componentType = 'collection';
+            }
+            components.push({
+                id: `component-${componentId++}`,
+                type: componentType,
+                template: {
+                    title: componentType === 'mapping' ? 'Mapping' :
+                        componentType === 'collection' ? 'Collection' : 'State Variable',
+                    content: `${name}: ${type || 'any'}`,
+                    properties: {
+                        name: name,
+                        type: type || 'any',
+                        description: `Auto-converted: ${name}`
+                    }
+                },
+                x: 50,
+                y: yPosition
+            });
+            yPosition += 120;
+        }
+        // Parse methods
+        const methodRegex = /@(view|call)\s*\([^)]*\)\s*(\w+)\s*\([^)]*\)(?:\s*:\s*([^{]+))?\s*{/g;
+        let methodMatch;
+        let xPosition = 350;
+        yPosition = 50;
+        while ((methodMatch = methodRegex.exec(classContent)) !== null) {
+            const [, decorator, name, returnType] = methodMatch;
+            // Check for payable function
+            const isPayable = content.includes(`@call({ payableFunction: true })`);
+            let componentType = decorator === 'view' ? 'view-method' :
+                isPayable ? 'payable-method' : 'call-method';
+            components.push({
+                id: `component-${componentId++}`,
+                type: componentType,
+                template: {
+                    title: componentType === 'payable-method' ? 'Payable Method' :
+                        componentType === 'call-method' ? 'Call Method' : 'View Method',
+                    content: `${decorator === 'view' ? '@view' : '@call'} ${name}()`,
+                    properties: {
+                        name: name,
+                        returnType: returnType?.trim() || 'void',
+                        description: `Auto-converted: ${name}`
+                    }
+                },
+                x: xPosition,
+                y: yPosition
+            });
+            yPosition += 120;
+            if (yPosition > 500) {
+                yPosition = 50;
+                xPosition += 300;
+            }
+        }
+    }
+    return components;
+}
 async function showAccountSwitcher(accountManagerProvider) {
     const config = vscode.workspace.getConfiguration('nearExtension');
     const accounts = config.get('accounts') || {};
