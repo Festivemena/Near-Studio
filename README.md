@@ -44,9 +44,9 @@ A comprehensive VS Code extension for developing, building, testing, and deployi
 Before using this extension, ensure you have the following installed:
 
 1. **Node.js** (v16 or higher)
-2. **Near CLI**:
+2. **Near CLI RS**:
    ```bash
-   npm install -g near-cli
+   cargo install near-cli-rs 
    ```
 
 #### For Rust Contracts:
