@@ -23,11 +23,12 @@ A comprehensive VS Code extension for developing, building, testing, and deployi
 - **Toolchain management**: Automated setup for Rust, and Node.js environments
 - **Contract optimization**: Production-ready optimization for WASM outputs
 - **Binding generation**: Generate client bindings for contract interaction
+- **Account Manager**: Create and import Mainnet/Testnet accounts with 1-click
 
 ### 🎛️ **Integrated Sidebar Panel**
 - **Project Explorer**: Quick-access buttons for contract creation, building, and deployment
 - **Contract Manager**: Automatic detection and status tracking of NEAR contracts in your workspace
-- **Account Manager**: Manage NEAR accounts with easy configuration and switching
+- **Account Manager**: Manage NEAR accounts with easy configuration, get gas for testnet and switching accounts
 
 ### 🔧 **Developer Experience**
 - **Task integration**: Built-in VS Code tasks for Near operations
@@ -43,9 +44,9 @@ A comprehensive VS Code extension for developing, building, testing, and deployi
 Before using this extension, ensure you have the following installed:
 
 1. **Node.js** (v16 or higher)
-2. **Near CLI**:
+2. **Near CLI RS**:
    ```bash
-   npm install -g near-cli
+   cargo install near-cli-rs 
    ```
 
 #### For Rust Contracts:
