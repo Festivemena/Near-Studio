@@ -509,7 +509,7 @@ export class AccountManagerProvider implements vscode.TreeDataProvider<AccountIt
         let num = BigInt('0x' + buffer.toString('hex'));
         let result = '';
         
-        while (num > 0) {
+        while (num > 0) { 
             const remainder = num % BigInt(base);
             result = alphabet[Number(remainder)] + result;
             num = num / BigInt(base);
