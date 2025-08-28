@@ -2,7 +2,7 @@
   "name": "near-studio",
   "displayName": "Near Studio",
   "description": "A comprehensive VS Code extension for developing, building, testing, and deploying NEAR Protocol smart contracts in Rust, JavaScript and TypeScript.",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "Festivemena",
   "license": "MIT",
   "engines": {
@@ -62,12 +62,6 @@
           "when": "workspaceFolderCount > 0"
         },
         {
-        "type": "webview",
-        "id": "near-studio.visualDesigner",
-        "name": "Visual Designer",
-        "when": "workspaceFolderCount > 0"
-      },
-        {
           "type": "webview",
           "id": "near-studio.contractManager",
           "name": "Contract Manager",
@@ -81,54 +75,6 @@
       ]
     },
     "commands": [
-      {
-        "command": "nearExtension.openVisualDesigner",
-        "title": "Open Visual Designer",
-        "category": "Near",
-        "icon": "$(symbol-class)"
-      },
-      {
-        "command": "nearExtension.newContractFromTemplate",
-        "title": "New Contract from Template",
-        "category": "Near",
-        "icon": "$(file-code)"
-      },
-      {
-        "command": "nearExtension.convertToVisualDesign",
-        "title": "Convert to Visual Design",
-        "category": "Near",
-        "icon": "$(symbol-event)"
-      },
-      {
-        "command": "nearExtension.importContractDesign",
-        "title": "Import Contract Design",
-        "category": "Near",
-        "icon": "$(cloud-download)"
-      },
-      {
-        "command": "nearExtension.generateFromVisualDesign",
-        "title": "Generate Code from Design",
-        "category": "Near",
-        "icon": "$(code)"
-      },
-      {
-        "command": "nearExtension.validateDesign",
-        "title": "Validate Contract Design",
-        "category": "Near",
-        "icon": "$(check-all)"
-      },
-      {
-        "command": "nearExtension.exportDesignAsImage",
-        "title": "Export Design as Image",
-        "category": "Near",
-        "icon": "$(device-camera)"
-      },
-      {
-        "command": "nearExtension.shareDesign",
-        "title": "Share Contract Design",
-        "category": "Near",
-        "icon": "$(share)"
-      },
       {
         "command": "nearExtension.createContract",
         "title": "Create New Near Contract",
@@ -255,45 +201,9 @@
           "when": "resourceExtname == .rs || resourceExtname == .js || resourceExtname == .ts",
           "command": "nearExtension.buildContract",
           "group": "near"
-        },
-        {
-          "when": "resourceExtname == .rs || resourceExtname == .js || resourceExtname == .ts",
-          "command": "nearExtension.convertToVisualDesign",
-          "group": "near@2"
-        }
-      ],
-      "editor/context": [
-        {
-          "when": "resourceExtname == .rs || resourceExtname == .js || resourceExtname == .ts",
-          "command": "nearExtension.convertToVisualDesign",
-          "group": "near@1"
         }
       ],
       "commandPalette": [
-         {
-          "command": "nearExtension.openVisualDesigner",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "nearExtension.newContractFromTemplate",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "nearExtension.convertToVisualDesign",
-          "when": "editorIsOpen"
-        },
-        {
-          "command": "nearExtension.importContractDesign",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "nearExtension.generateFromVisualDesign",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "nearExtension.validateDesign",
-          "when": "workspaceFolderCount > 0"
-        },
         {
           "command": "nearExtension.createContract",
           "when": "workspaceFolderCount > 0"
@@ -310,21 +220,6 @@
       ],
       "view/title": [
         {
-          "command": "nearExtension.newContractFromTemplate",
-          "when": "view == near-studio.visualDesigner",
-          "group": "navigation@1"
-        },
-        {
-          "command": "nearExtension.importContractDesign",
-          "when": "view == near-studio.visualDesigner",
-          "group": "navigation@2"
-        },
-        {
-          "command": "nearExtension.generateFromVisualDesign",
-          "when": "view == near-studio.visualDesigner",
-          "group": "navigation@3"
-        },
-        {
           "command": "near-studio.refreshAccounts",
           "when": "view == near-studio.accountManager",
           "group": "navigation"
@@ -335,26 +230,6 @@
           "group": "navigation"
         }
       ],
-       "keybindings": [
-      {
-        "command": "nearExtension.openVisualDesigner",
-        "key": "ctrl+shift+n ctrl+shift+v",
-        "mac": "cmd+shift+n cmd+shift+v",
-        "when": "workspaceFolderCount > 0"
-      },
-      {
-        "command": "nearExtension.generateFromVisualDesign",
-        "key": "ctrl+shift+g",
-        "mac": "cmd+shift+g",
-        "when": "focusedView == near-studio.visualDesigner"
-      },
-      {
-        "command": "nearExtension.validateDesign",
-        "key": "ctrl+shift+v",
-        "mac": "cmd+shift+v",
-        "when": "focusedView == near-studio.visualDesigner"
-      }
-    ],
       "view/item/context": [
         {
           "command": "near-studio.switchAccount",
@@ -460,46 +335,6 @@
           "type": "number",
           "default": 30,
           "description": "Account balance update interval in seconds"
-        },
-         "nearExtension.visualDesigner.autoSave": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically save visual designs"
-        },
-        "nearExtension.visualDesigner.autoSaveInterval": {
-          "type": "number",
-          "default": 30,
-          "description": "Auto-save interval in seconds"
-        },
-        "nearExtension.visualDesigner.defaultLanguage": {
-          "type": "string",
-          "enum": [
-            "rust",
-            "javascript",
-            "typescript"
-          ],
-          "default": "rust",
-          "description": "Default language for code generation"
-        },
-        "nearExtension.visualDesigner.gridSnap": {
-          "type": "boolean",
-          "default": true,
-          "description": "Snap components to grid in visual designer"
-        },
-        "nearExtension.visualDesigner.showMinimap": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show minimap in visual designer"
-        },
-        "nearExtension.visualDesigner.theme": {
-          "type": "string",
-          "enum": [
-            "dark",
-            "light",
-            "auto"
-          ],
-          "default": "auto",
-          "description": "Visual designer theme"
         }
       }
     },

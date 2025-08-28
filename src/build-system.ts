@@ -4,17 +4,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { BuildConfig } from './types/buildTypes';
 
 const execAsync = promisify(exec);
-
-export interface BuildConfig {
-    language: 'rust' | 'javascript' | 'typescript';
-    projectPath: string;
-    contractName: string;
-    outputPath: string;
-    optimization: boolean;
-    debug: boolean;
-}
 
 export class NearBuildSystem {
     private outputChannel: vscode.OutputChannel;
