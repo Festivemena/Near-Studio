@@ -1,4 +1,4 @@
-name: Build and Package
+name: CI Build and Package
 
 on:
   push:
@@ -26,10 +26,10 @@ jobs:
       run: npm run compile
 
     - name: Package VSCode extension
-      run: npx vsce package
+      run: vsce package
 
     - name: Upload VSIX artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: vscode-extension-package
         path: '*.vsix'
