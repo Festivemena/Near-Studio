@@ -25,6 +25,9 @@ jobs:
     - name: Compile TypeScript
       run: npm run compile
 
+    - name: Install vsce CLI
+      run: npm install -g vsce
+
     - name: Package VSCode extension
       run: vsce package
 
