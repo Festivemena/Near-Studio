@@ -156,21 +156,21 @@ async function createJSContract(contractDir: string, contractName: string, isTS:
     // Create package.json
     const packageJson = {
         name: contractName,
-        version: "1.0.0",
+        version: '1.0.0',
         scripts: {
-            build: "near-sdk-js build src/index." + (isTS ? "ts" : "js") + " build/" + contractName + ".wasm",
-            test: "jest"
+            build: 'near-sdk-js build src/index.' + (isTS ? 'ts' : 'js') + ' build/' + contractName + '.wasm',
+            test: 'jest'
         },
         dependencies: {
-            "near-sdk-js": "^1.0.0"
+            'near-sdk-js': '^1.0.0'
         },
         devDependencies: isTS ? {
-            typescript: "^4.x",
-            jest: "^29.x",
-            "@types/jest": "^29.x",
-            "ts-jest": "^29.x"
+            typescript: '^4.x',
+            jest: '^29.x',
+            '@types/jest': '^29.x',
+            'ts-jest': '^29.x'
         } : {
-            jest: "^29.x"
+            jest: '^29.x'
         }
     };
     fs.writeFileSync(path.join(contractDir, 'package.json'), JSON.stringify(packageJson, null, 2));
@@ -231,7 +231,7 @@ async function buildContract() {
 
     const terminal = vscode.window.createTerminal('Near Build');
     // Adjust command as per detected project type - simply example here
-    terminal.sendText(`./build.sh`);
+    terminal.sendText('./build.sh');
     terminal.show();
 
     vscode.window.withProgress({
@@ -266,7 +266,7 @@ async function testContract() {
     }
 
     const terminal = vscode.window.createTerminal('Near Test');
-    terminal.sendText(`npm test || cargo test`);
+    terminal.sendText('npm test || cargo test');
     terminal.show();
 }
 
@@ -281,7 +281,7 @@ async function optimizeContract() {
     const terminal = vscode.window.createTerminal('Near Optimize');
 
     if (fs.existsSync(optimizePath)) {
-        terminal.sendText(`./optimize.sh`);
+        terminal.sendText('./optimize.sh');
     } else {
         terminal.sendText('cargo build --target wasm32-unknown-unknown --release');
     }

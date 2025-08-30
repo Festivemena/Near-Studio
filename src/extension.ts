@@ -6,7 +6,7 @@ import { ProjectExplorerProvider } from './providers/ProjectExplorerProvider';
 import { ContractManagerProvider } from './providers/ContractManagerProvider';
 import { AccountManagerProvider } from './providers/AccountManagerProvider';
 
-import { registerAccountCommands } from './commands/accountCommands'
+import { registerAccountCommands } from './commands/accountCommands';
 import { registerContractCommands } from './commands/contractCommands';
 import { registerProjectCommands } from './commands/projectCommands';
 
@@ -97,8 +97,7 @@ async function validateToolchains() {
     const config = vscode.workspace.getConfiguration('nearExtension');
     if (!config.get<boolean>('autoInstallDeps', true)) return;
 
-    try { await execAsync('near --version'); }
-    catch {
+    try { await execAsync('near --version'); } catch {
         const btn = await vscode.window.showWarningMessage(
             'Near CLI not found. Install it for full functionality.',
             'Install Near CLI', 'Ignore'

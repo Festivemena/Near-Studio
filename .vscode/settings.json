@@ -1,3 +1,10 @@
 {
-    "nearExtension.accountId": "freepuma7895.near"
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "eslint.validate": [
+    "typescript",
+    "typescriptreact",
+    "javascript"
+  ]
 }
