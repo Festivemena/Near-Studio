@@ -29,7 +29,7 @@ jobs:
       run: npm install -g vsce
 
     - name: Package VSCode extension
-      run: vsce package
+      run: npx vsce package
 
     - name: Upload VSIX artifact
       uses: actions/upload-artifact@v4
