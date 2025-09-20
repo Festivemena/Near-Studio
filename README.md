@@ -1,4 +1,4 @@
-![NearSmart Banner](./nearstudio-dark.png#gh-dark-mode-only)
+![NearSmart Banner](./assets/nearstudio-dark.png#gh-dark-mode-only)
 
 # Near Smart Contracts VS Code Extension
 

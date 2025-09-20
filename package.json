@@ -42,14 +42,14 @@
     "workspaceContains:**/package.json"
   ],
   "main": "./out/extension.js",
-  "icon": "logo.png",
+  "icon": "assets/logo.png",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
           "id": "near-studio-sidebar",
           "title": "NEAR Studio",
-          "icon": "./nearstudio.svg"
+          "icon": "./assets/nearstudio.svg"
         }
       ]
     },
