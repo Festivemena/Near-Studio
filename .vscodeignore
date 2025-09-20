@@ -1,0 +1,10 @@
+node_modules
+.vscode
+*.code-workspace
+.git
+npm-debug.log
+yarn-error.log
+dist
+pnpm-lock.yaml
+out/test/**
+

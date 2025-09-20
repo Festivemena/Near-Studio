@@ -1,8 +1,8 @@
 {
   "name": "near-studio",
   "displayName": "Near Studio",
-  "description": "A comprehensive VS Code extension for developing, building, testing, and deploying NEAR Protocol smart contracts in Rust, JavaScript and TypeScript.",
-  "version": "0.0.7",
+  "description": "A comprehensive VS Code extension for developing, building, testing, and deploying NEAR Protocol smart contracts in Rust, JavaScript, TypeScript, and Python using create-near-app templates.",
+  "version": "0.1.0",
   "publisher": "Festivemena",
   "license": "MIT",
   "engines": {
@@ -21,10 +21,15 @@
     "rust",
     "javascript",
     "typescript",
+    "python",
     "wasm",
     "wallet",
     "testnet",
-    "mainnet"
+    "mainnet",
+    "create-near-app",
+    "next.js",
+    "vite",
+    "react"
   ],
   "repository": {
     "type": "git",
@@ -38,8 +43,10 @@
     "onLanguage:rust",
     "onLanguage:javascript",
     "onLanguage:typescript",
+    "onLanguage:python",
     "workspaceContains:**/Cargo.toml",
-    "workspaceContains:**/package.json"
+    "workspaceContains:**/package.json",
+    "workspaceContains:**/contract.py"
   ],
   "main": "./out/extension.js",
   "icon": "assets/logo.png",
@@ -93,6 +100,16 @@
       {
         "command": "nearExtension.createTSContract",
         "title": "Create TypeScript Contract",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.createPythonContract",
+        "title": "Create Python Contract",
+        "category": "Near"
+      },
+      {
+        "command": "nearExtension.createFrontend",
+        "title": "Create Frontend",
         "category": "Near"
       },
       {
@@ -165,57 +182,17 @@
         "icon": "$(globe)"
       },
       {
-        "command": "near-studio.disconnectAccount",
-        "title": "Disconnect Account",
-        "category": "Near Wallet",
-        "icon": "$(close)"
-      },
-      {
-        "command": "near-studio.copyAccountKey",
-        "title": "Copy Private Key",
-        "category": "Near Wallet",
-        "icon": "$(copy)"
-      },
-      {
-        "command": "near-studio.fundTestnetAccount",
-        "title": "Fund with Test Tokens",
+        "command": "near-studio.getTestTokens",
+        "title": "Get Test Tokens",
         "category": "Near Wallet",
         "icon": "$(gift)"
-      },
-      {
-        "command": "near-studio.viewAccountOnExplorer",
-        "title": "View on Explorer",
-        "category": "Near Wallet",
-        "icon": "$(link-external)"
-      },
-      {
-        "command": "near-studio.refreshAccountBalance",
-        "title": "Refresh Balance",
-        "category": "Near Wallet",
-        "icon": "$(refresh)"
       }
     ],
     "menus": {
-      "explorer/context": [
-        {
-          "when": "resourceExtname == .rs || resourceExtname == .js || resourceExtname == .ts",
-          "command": "nearExtension.buildContract",
-          "group": "near"
-        }
-      ],
       "commandPalette": [
         {
-          "command": "nearExtension.createContract",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "near-studio.createWallet"
-        },
-        {
-          "command": "near-studio.importWallet"
-        },
-        {
-          "command": "near-studio.switchAccount"
+          "command": "near-studio.refreshAccounts",
+          "when": "false"
         }
       ],
       "view/title": [
@@ -230,41 +207,26 @@
           "group": "navigation"
         }
       ],
-      "view/item/context": [
+      "explorer/context": [
         {
-          "command": "near-studio.switchAccount",
-          "when": "view == near-studio.accountManager && viewItem == account",
-          "group": "primary@1"
+          "command": "nearExtension.createContract",
+          "when": "explorerResourceIsFolder",
+          "group": "near@1"
         },
         {
-          "command": "near-studio.refreshAccountBalance",
-          "when": "view == near-studio.accountManager && viewItem == account",
-          "group": "primary@2"
+          "command": "nearExtension.createFrontend",
+          "when": "explorerResourceIsFolder",
+          "group": "near@2"
         },
         {
-          "command": "near-studio.switchNetwork",
-          "when": "view == near-studio.accountManager && viewItem == account",
-          "group": "secondary@1"
+          "command": "nearExtension.buildContract",
+          "when": "resourceExtname == .rs || resourceExtname == .ts || resourceExtname == .js || resourceFilename == contract.py",
+          "group": "near@3"
         },
         {
-          "command": "near-studio.fundTestnetAccount",
-          "when": "view == near-studio.accountManager && viewItem == account",
-          "group": "secondary@2"
-        },
-        {
-          "command": "near-studio.viewAccountOnExplorer",
-          "when": "view == near-studio.accountManager && viewItem == account",
-          "group": "secondary@3"
-        },
-        {
-          "command": "near-studio.copyAccountKey",
-          "when": "view == near-studio.accountManager && viewItem == account",
-          "group": "secondary@4"
-        },
-        {
-          "command": "near-studio.disconnectAccount",
-          "when": "view == near-studio.accountManager && viewItem == account",
-          "group": "danger@1"
+          "command": "nearExtension.testContract",
+          "when": "resourceExtname == .rs || resourceExtname == .ts || resourceExtname == .js || resourceFilename == contract.py",
+          "group": "near@4"
         }
       ]
     },
@@ -282,69 +244,37 @@
         "path": "./snippets/ts-snippets.json"
       }
     ],
-    "configuration": {
-      "title": "Near Smart Contracts",
-      "properties": {
-        "nearExtension.network": {
-          "type": "string",
-          "enum": [
-            "testnet",
-            "mainnet",
-            "sandbox"
-          ],
-          "default": "testnet",
-          "description": "Default Near network to use"
-        },
-        "nearExtension.accountId": {
-          "type": "string",
-          "default": "",
-          "description": "Your active Near account ID"
-        },
-        "nearExtension.accounts": {
-          "type": "object",
-          "default": {},
-          "description": "Stored NEAR accounts with credentials",
-          "properties": {}
-        },
-        "nearExtension.buildCommand": {
-          "type": "string",
-          "default": "cargo build --target wasm32-unknown-unknown --release",
-          "description": "Command to build Rust contracts"
-        },
-        "nearExtension.jsBuildCommand": {
-          "type": "string",
-          "default": "npm run build",
-          "description": "Command to build JavaScript/TypeScript contracts"
-        },
-        "nearExtension.wasmOptimization": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable WASM optimization for production builds"
-        },
-        "nearExtension.autoInstallDeps": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically install missing dependencies"
-        },
-        "nearExtension.autoFundTestnet": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically fund testnet accounts on creation"
-        },
-        "nearExtension.balanceUpdateInterval": {
-          "type": "number",
-          "default": 30,
-          "description": "Account balance update interval in seconds"
-        }
-      }
-    },
     "taskDefinitions": [
       {
         "type": "near",
+        "required": [
+          "task"
+        ],
         "properties": {
-          "command": {
+          "task": {
             "type": "string",
-            "description": "The Near command to execute"
+            "description": "The Near task to execute",
+            "enum": [
+              "build",
+              "test",
+              "deploy",
+              "optimize",
+              "generate-bindings"
+            ]
+          },
+          "contract": {
+            "type": "string",
+            "description": "The contract to operate on"
+          },
+          "language": {
+            "type": "string",
+            "description": "Contract language",
+            "enum": [
+              "rust",
+              "typescript",
+              "javascript",
+              "python"
+            ]
           }
         }
       }
@@ -352,23 +282,27 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "package": "vsce package",
-    "publish": "vsce publish",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
   },
   "devDependencies": {
-    "@types/node": "16.x",
-    "@types/node-fetch": "^2.6.13",
     "@types/vscode": "^1.74.0",
-    "@vscode/vsce": "^3.6.0",
-    "typescript": "^4.9.4"
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "eslint": "^8.28.0",
+    "typescript": "^4.9.4",
+    "@vscode/test-electron": "^2.2.0",
+    "@vscode/vsce": "^2.15.0"
   },
   "dependencies": {
-    "child_process": "^1.0.2",
-    "near-api-js": "^2.1.0",
-    "node-fetch": "^3.3.0",
-    "vsce": "^2.15.0",
-    "wasm-opt": "^1.3.0"
-  }
+    "child_process": "^1.0.2"
+  },
+  "extensionDependencies": [],
+  "extensionPack": []
 }
