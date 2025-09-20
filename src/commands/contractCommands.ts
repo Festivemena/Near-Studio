@@ -222,6 +222,8 @@ async function createSpecificContractFromTemplate(template: CreateNearAppTemplat
 
             progress.report({ message: 'Running create-near-app...' });
             
+            // Run the command in the workspace directory
+            // create-near-app will create the projectName folder automatically
             const { stdout, stderr } = await execAsync(createCommand, {
                 cwd: workspaceFolder.uri.fsPath,
                 timeout: 300000 // 5 minutes timeout
@@ -229,6 +231,11 @@ async function createSpecificContractFromTemplate(template: CreateNearAppTemplat
 
             if (stderr && !stderr.includes('npm WARN')) {
                 console.warn('create-near-app warnings:', stderr);
+            }
+
+            // Verify the project was created
+            if (!fs.existsSync(targetPath)) {
+                throw new Error(`Project directory was not created at ${targetPath}`);
             }
 
             progress.report({ message: 'Setting up project structure...' });
@@ -255,7 +262,17 @@ async function createSpecificContractFromTemplate(template: CreateNearAppTemplat
             });
 
         } catch (error) {
+            console.error('Error creating project:', error);
             vscode.window.showErrorMessage(`Failed to create project: ${error}`);
+            
+            // Clean up partially created directory if it exists
+            if (fs.existsSync(targetPath)) {
+                try {
+                    fs.rmSync(targetPath, { recursive: true, force: true });
+                } catch (cleanupError) {
+                    console.warn('Failed to clean up partial project:', cleanupError);
+                }
+            }
         }
     });
 }
