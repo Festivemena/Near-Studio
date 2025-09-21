@@ -2,7 +2,7 @@
   "name": "near-studio",
   "displayName": "Near Studio",
   "description": "A comprehensive VS Code extension for developing, building, testing, and deploying NEAR Protocol smart contracts in Rust, JavaScript, TypeScript, and Python using create-near-app templates.",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "publisher": "Festivemena",
   "license": "MIT",
   "engines": {
