@@ -32,9 +32,10 @@ export async function activate(context: vscode.ExtensionContext) {
         accountManagerProvider
     );
 
+    registerAccountCommands(context, accountManagerProvider);
+
     // Register commands modularly
     context.subscriptions.push(
-        ...registerAccountCommands(accountManagerProvider),
         ...registerContractCommands(),
         ...registerProjectCommands(accountManagerProvider),
     );
