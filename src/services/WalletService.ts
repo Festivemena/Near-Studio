@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import { NearAccount } from '../types/accountTypes';
 import { NearCliUtils } from '../utils/nearCliUtils';
 import { CredentialsService } from './CredentialsService';
+import { promisify } from 'util';
+const exec = promisify(require('child_process').exec);
 
 export class WalletService {
     private credentialsService = new CredentialsService();
@@ -50,28 +52,96 @@ export class WalletService {
     }
 
     private async handleTestnetCreation(accountId: string, network: string, refreshCallback: () => void): Promise<void> {
-        const method = await vscode.window.showQuickPick([
-            { 
-                label: 'Use NEAR Wallet (Recommended)', 
-                description: 'Create account through web wallet',
-                detail: 'Opens wallet.testnet.near.org to create account'
-            },
-            { 
-                label: 'Generate Keys Manually', 
-                description: 'Generate keys and fund manually',
-                detail: 'Creates keys locally, you fund the account'
+        await this.createAccountWithCLIFaucet(accountId, network, refreshCallback);
+    }
+
+    private async createAccountWithCLIFaucet(accountId: string, network: string, refreshCallback: () => void): Promise<void> {
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: `Creating account ${accountId} on ${network}...`,
+            cancellable: false
+        }, async (progress) => {
+            try {
+                progress.report({ increment: 25, message: 'Executing NEAR CLI command...' });
+                
+                // Execute the near create-account command with --useFaucet
+                const command = `near create-account ${accountId} --useFaucet`;
+                const { stdout, stderr } = await exec(command);
+                
+                progress.report({ increment: 50, message: 'Account creation in progress...' });
+                
+                if (stderr && !stderr.includes('WARNING')) {
+                    throw new Error(stderr);
+                }
+                
+                progress.report({ increment: 75, message: 'Finalizing account setup...' });
+                
+                // Wait a moment for the account to be fully created
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                progress.report({ increment: 100, message: 'Account created successfully!' });
+                
+                vscode.window.showInformationMessage(
+                    `✅ Account ${accountId} created successfully on ${network} with test tokens!`,
+                    'Import Account'
+                ).then(selection => {
+                    if (selection === 'Import Account') {
+                        this.importCreatedAccount(accountId, network, refreshCallback);
+                    }
+                });
+                
+            } catch (error: any) {
+                const errorMessage = error.message || error.toString();
+                
+                // Handle common error cases
+                if (errorMessage.includes('already exists')) {
+                    vscode.window.showWarningMessage(
+                        `Account ${accountId} already exists. Would you like to import it instead?`,
+                        'Import Account'
+                    ).then(selection => {
+                        if (selection === 'Import Account') {
+                            this.importCreatedAccount(accountId, network, refreshCallback);
+                        }
+                    });
+                } else if (errorMessage.includes('near-cli-rs') || errorMessage.includes('command not found')) {
+                    vscode.window.showErrorMessage(
+                        'NEAR CLI is not installed or not in PATH. Please install near-cli-rs: cargo install near-cli-rs',
+                        'Install Instructions'
+                    ).then(selection => {
+                        if (selection === 'Install Instructions') {
+                            vscode.env.openExternal(vscode.Uri.parse('https://github.com/near/near-cli-rs#installation'));
+                        }
+                    });
+                } else {
+                    vscode.window.showErrorMessage(`Failed to create account: ${errorMessage}`);
+                }
             }
-        ], { 
-            placeHolder: 'Choose account creation method' 
         });
+    }
 
-        if (!method) return;
-
-        if (method.label === 'Use NEAR Wallet (Recommended)') {
-            await this.createAccountViaWallet(accountId, network);
-        } else {
-            await this.createAccountManually(accountId, network, refreshCallback);
+    private async importCreatedAccount(accountId: string, network: string, refreshCallback: () => void): Promise<void> {
+        try {
+            // Check if the account exists and get its keys
+            const keyPath = this.getDefaultKeyPath(accountId, network);
+            
+            vscode.window.showInformationMessage(
+                `Account ${accountId} should now be available in your local NEAR CLI configuration.`,
+                'Refresh Accounts'
+            ).then(selection => {
+                if (selection === 'Refresh Accounts') {
+                    refreshCallback();
+                }
+            });
+            
+        } catch (error: any) {
+            vscode.window.showErrorMessage(`Failed to import account: ${error.message}`);
         }
+    }
+
+    private getDefaultKeyPath(accountId: string, network: string): string {
+        const os = require('os');
+        const path = require('path');
+        return path.join(os.homedir(), '.near-credentials', network, `${accountId}.json`);
     }
 
     private async handleMainnetCreation(): Promise<void> {
@@ -83,87 +153,6 @@ export class WalletService {
                 vscode.env.openExternal(vscode.Uri.parse('https://wallet.near.org'));
             }
         });
-    }
-
-    private async createAccountViaWallet(accountId: string, network: string): Promise<void> {
-        const walletUrl = network === 'testnet' 
-            ? `https://wallet.testnet.near.org/create/${accountId}`
-            : `https://wallet.near.org/create/${accountId}`;
-        
-        const proceed = await vscode.window.showInformationMessage(
-            `This will open NEAR Wallet to create ${accountId}. After creating the account, return here to import it.`,
-            'Open Wallet',
-            'Cancel'
-        );
-
-        if (proceed === 'Open Wallet') {
-            await vscode.env.openExternal(vscode.Uri.parse(walletUrl));
-            
-            setTimeout(() => {
-                vscode.window.showInformationMessage(
-                    'After creating your account in NEAR Wallet, would you like to import it now?',
-                    'Import Account'
-                ).then(selection => {
-                    if (selection === 'Import Account') {
-                        this.importWallet(network as any, new Map(), () => {});
-                    }
-                });
-            }, 3000);
-        }
-    }
-
-    private async createAccountManually(accountId: string, network: string, refreshCallback: () => void): Promise<void> {
-        await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: `Creating ${network} wallet...`,
-            cancellable: false
-        }, async (progress) => {
-            progress.report({ increment: 25, message: 'Generating keys...' });
-
-            const keyPair = await NearCliUtils.generateKeysWithNearCliRs();
-            
-            progress.report({ increment: 50, message: 'Saving credentials...' });
-            
-            await this.credentialsService.saveNearCliCredentials(accountId, network, keyPair);
-            
-            progress.report({ increment: 75, message: 'Account setup complete' });
-
-            const newAccount: NearAccount = {
-                id: accountId,
-                network: network as any,
-                publicKey: keyPair.publicKey,
-                privateKey: keyPair.privateKey,
-                balance: '0 NEAR (Not funded)',
-                isActive: true
-            };
-
-            await this.credentialsService.saveAccount(newAccount);
-            progress.report({ increment: 100, message: 'Ready to fund!' });
-        });
-
-        await this.showFundingInstructions(accountId);
-        refreshCallback();
-    }
-
-    private async showFundingInstructions(accountId: string): Promise<void> {
-        const choice = await vscode.window.showInformationMessage(
-            `✅ Keys generated for ${accountId}!\n\nTo activate your account, you need to fund it. You can:\n1. Use the NEAR testnet faucet\n2. Ask someone to send you NEAR\n3. Use a linkdrop`,
-            'Open Faucet',
-            'Copy Public Key',
-            'Switch to Account'
-        );
-
-        switch (choice) {
-            case 'Open Faucet':
-                await vscode.env.openExternal(vscode.Uri.parse('https://near-faucet.io/'));
-                break;
-            case 'Copy Public Key':
-                // Implementation would need access to accounts map
-                break;
-            case 'Switch to Account':
-                // Implementation would need access to switch method
-                break;
-        }
     }
 
     private async createSandboxAccount(accountId: string, network: 'sandbox', refreshCallback: () => void): Promise<void> {

@@ -2,7 +2,7 @@
   "name": "near-studio",
   "displayName": "Near Studio",
   "description": "A comprehensive VS Code extension for developing, building, testing, and deploying NEAR Protocol smart contracts in Rust, JavaScript, TypeScript, and Python using create-near-app templates.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "Festivemena",
   "license": "MIT",
   "engines": {
@@ -159,32 +159,50 @@
       },
       {
         "command": "near-studio.createWallet",
-        "title": "Create New Wallet",
-        "category": "Near Wallet",
+        "title": "Create New Account",
+        "category": "Near",
         "icon": "$(add)"
       },
       {
-        "command": "near-studio.importWallet",
-        "title": "Import Existing Wallet",
-        "category": "Near Wallet",
+        "command": "near-studio.quickCreateTestnetAccount",
+        "title": "Quick Create Testnet Account (with Faucet)",
+        "category": "Near",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "near-studio.importWallet", 
+        "title": "Import Existing Account",
+        "category": "Near",
         "icon": "$(folder-opened)"
       },
       {
         "command": "near-studio.switchAccount",
-        "title": "Switch to Account",
-        "category": "Near Wallet",
+        "title": "Switch Account",
+        "category": "Near",
         "icon": "$(account)"
       },
       {
         "command": "near-studio.switchNetwork",
         "title": "Switch Network",
-        "category": "Near Wallet",
+        "category": "Near",
         "icon": "$(globe)"
+      },
+      {
+        "command": "near-studio.fundTestnetAccount",
+        "title": "Fund Testnet Account",
+        "category": "Near",
+        "icon": "$(symbol-currency)"
+      },
+      {
+        "command": "near-studio.viewAccountOnExplorer",
+        "title": "View on Explorer",
+        "category": "Near",
+        "icon": "$(link-external)"
       },
       {
         "command": "near-studio.getTestTokens",
         "title": "Get Test Tokens",
-        "category": "Near Wallet",
+        "category": "Near",
         "icon": "$(gift)"
       }
     ],
@@ -202,9 +220,30 @@
           "group": "navigation"
         },
         {
+          "command": "near-studio.quickCreateTestnetAccount",
+          "when": "view == near-studio.accountManager",
+          "group": "navigation"
+        },
+        {
           "command": "near-studio.addAccount",
           "when": "view == near-studio.accountManager",
           "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "near-studio.fundTestnetAccount",
+          "when": "view == near-studio.accountManager && viewItem == account",
+          "group": "inline"
+        },
+        {
+          "command": "near-studio.viewAccountOnExplorer", 
+          "when": "view == near-studio.accountManager && viewItem == account",
+          "group": "inline"
+        },
+        {
+          "command": "near-studio.switchAccount",
+          "when": "view == near-studio.accountManager && viewItem == account"
         }
       ],
       "explorer/context": [

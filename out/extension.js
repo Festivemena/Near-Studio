@@ -44,8 +44,9 @@ async function activate(context) {
     const accountManagerProvider = new AccountManagerProvider_1.AccountManagerProvider();
     // Register providers
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('near-studio.projectExplorer', projectExplorerProvider), vscode.window.registerWebviewViewProvider('near-studio.contractManager', contractManagerProvider), vscode.window.registerTreeDataProvider('near-studio.accountManager', accountManagerProvider), contractManagerProvider, accountManagerProvider);
+    (0, accountCommands_1.registerAccountCommands)(context, accountManagerProvider);
     // Register commands modularly
-    context.subscriptions.push(...(0, accountCommands_1.registerAccountCommands)(accountManagerProvider), ...(0, contractCommands_1.registerContractCommands)(), ...(0, projectCommands_1.registerProjectCommands)(accountManagerProvider));
+    context.subscriptions.push(...(0, contractCommands_1.registerContractCommands)(), ...(0, projectCommands_1.registerProjectCommands)(accountManagerProvider));
     // Register task provider
     context.subscriptions.push(vscode.tasks.registerTaskProvider('near', new NearTaskProvider_1.NearTaskProvider()));
     // Check projects and tooling

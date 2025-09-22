@@ -1,35 +1,13 @@
 // src/commands/accountCommands.ts
 
 import * as vscode from 'vscode';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import { AccountManagerProvider } from '../providers/AccountManagerProvider';
+import { promisify } from 'util';
+const exec = promisify(require('child_process').exec);
 
-const execAsync = promisify(exec);
-
-export function registerAccountCommands(accountManagerProvider: AccountManagerProvider): vscode.Disposable[] {
-    return [
-        vscode.commands.registerCommand('near-studio.refreshAccounts', () => {
-            accountManagerProvider.refresh();
-        }),
-
-        vscode.commands.registerCommand('near-studio.addAccount', async () => {
-            const options = [
-                { label: '🚀 Create New Wallet', description: 'Create a brand new NEAR wallet' },
-                { label: '📥 Import Existing Wallet', description: 'Import an existing NEAR account' }
-            ];
-
-            const selected = await vscode.window.showQuickPick(options, {
-                placeHolder: 'Choose how to add an account'
-            });
-
-            if (selected?.label.includes('Create')) {
-                vscode.commands.executeCommand('near-studio.createWallet');
-            } else if (selected?.label.includes('Import')) {
-                vscode.commands.executeCommand('near-studio.importWallet');
-            }
-        }),
-
+export function registerAccountCommands(context: vscode.ExtensionContext, accountManagerProvider: any) {
+    context.subscriptions.push(
+        // Create wallet command with enhanced CLI faucet support
         vscode.commands.registerCommand('near-studio.createWallet', async (network?: string) => {
             if (!network) {
                 const networkOptions = [
@@ -40,12 +18,127 @@ export function registerAccountCommands(accountManagerProvider: AccountManagerPr
 
                 const selected = await vscode.window.showQuickPick(networkOptions, {
                     placeHolder: 'Select network for new wallet'
-                });
+                })
 
                 if (!selected) return;
                 network = selected.value;
             }
-            await accountManagerProvider.createWallet(network as any);
+
+            await accountManagerProvider.createWallet(network);
+        }),
+
+        // Fund testnet account using CLI faucet only
+        vscode.commands.registerCommand('near-studio.fundTestnetAccount', async (accountItem) => {
+            if (accountItem && accountItem.contextValue === 'account' && accountItem.network === 'testnet') {
+                await vscode.window.withProgress({
+                    location: vscode.ProgressLocation.Notification,
+                    title: `Funding ${accountItem.label}...`,
+                    cancellable: false
+                }, async () => {
+                    try {
+                        // Use near create-account with --useFaucet
+                        const command = `near create-account ${accountItem.label} --useFaucet`;
+                        const { stdout, stderr } = await exec(command);
+                        
+                        if (stderr && !stderr.includes('WARNING') && !stderr.includes('already exists')) {
+                            throw new Error(stderr);
+                        }
+                        
+                        if (stderr.includes('already exists')) {
+                            vscode.window.showInformationMessage(`Account ${accountItem.label} already exists and is funded!`);
+                        } else {
+                            vscode.window.showInformationMessage(`✅ ${accountItem.label} created and funded with test tokens!`);
+                        }
+
+                        accountManagerProvider.refresh();
+                        
+                    } catch (error: any) {
+                        const errorMessage = error.message || error.toString();
+                        
+                        if (errorMessage.includes('near-cli-rs') || errorMessage.includes('command not found')) {
+                            vscode.window.showErrorMessage(
+                                'NEAR CLI is not installed. Install with: cargo install near-cli-rs',
+                                'Installation Guide'
+                            ).then(selection => {
+                                if (selection === 'Installation Guide') {
+                                    vscode.env.openExternal(vscode.Uri.parse('https://github.com/near/near-cli-rs#installation'));
+                                }
+                            });
+                        } else {
+                            vscode.window.showErrorMessage(`Failed to fund account: ${errorMessage}`);
+                        }
+                    }
+                });
+            }
+        }),
+
+        // Quick create account with CLI faucet command
+        vscode.commands.registerCommand('near-studio.quickCreateTestnetAccount', async () => {
+            const accountId = await vscode.window.showInputBox({
+                prompt: 'Enter account ID for testnet (will auto-append .testnet if needed)',
+                placeHolder: 'myaccount',
+                validateInput: (value) => {
+                    if (!value) return 'Account ID is required';
+                    if (value.includes('.') && !value.endsWith('.testnet')) {
+                        return 'Testnet accounts must end with .testnet';
+                    }
+                    return null;
+                }
+            });
+
+            if (!accountId) return;
+
+            const fullAccountId = accountId.includes('.') ? accountId : `${accountId}.testnet`;
+
+            await vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: `Creating ${fullAccountId}...`,
+                cancellable: false
+            }, async (progress) => {
+                try {
+                    progress.report({ increment: 30, message: 'Executing NEAR CLI command...' });
+                    
+                    const command = `near create-account ${fullAccountId} --useFaucet`;
+                    const { stdout, stderr } = await exec(command);
+                    
+                    progress.report({ increment: 70, message: 'Finalizing account...' });
+                    
+                    if (stderr && !stderr.includes('WARNING') && !stderr.includes('already exists')) {
+                        throw new Error(stderr);
+                    }
+                    
+                    progress.report({ increment: 100, message: 'Account created!' });
+                    
+                    if (stderr && stderr.includes('already exists')) {
+                        vscode.window.showWarningMessage(`Account ${fullAccountId} already exists!`);
+                    } else {
+                        vscode.window.showInformationMessage(
+                            `✅ Account ${fullAccountId} created successfully with test tokens!`,
+                            'Refresh Accounts'
+                        ).then(selection => {
+                            if (selection === 'Refresh Accounts') {
+                                accountManagerProvider.refresh();
+                            }
+                        });
+                    }
+                    
+                } catch (error: any) {
+                    const errorMessage = error.message || error.toString();
+                    
+                    if (errorMessage.includes('near-cli-rs') || errorMessage.includes('command not found')) {
+                        vscode.window.showErrorMessage(
+                            'NEAR CLI is not installed. Install with: cargo install near-cli-rs',
+                            'Installation Guide'
+                        ).then(selection => {
+                            if (selection === 'Installation Guide') {
+                                vscode.env.openExternal(vscode.Uri.parse('https://github.com/near/near-cli-rs#installation'));
+                            }
+                        });
+                    } else {
+                        vscode.window.showErrorMessage(`Failed to create account: ${errorMessage}`);
+                    }
+                }
+            });
         }),
 
         vscode.commands.registerCommand('near-studio.importWallet', async (network?: string) => {
@@ -207,8 +300,8 @@ export function registerAccountCommands(accountManagerProvider: AccountManagerPr
                 accountManagerProvider.refresh();
                 vscode.window.showInformationMessage('All accounts cleared');
             }
-        }),
-    ];
+        })
+    );
 }
 
 // Optionally implement an account switcher helper UI
