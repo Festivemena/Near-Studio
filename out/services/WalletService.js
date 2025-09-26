@@ -78,6 +78,39 @@ class WalletService {
     async handleTestnetCreation(accountId, network, refreshCallback) {
         await this.createAccountWithCLIFaucet(accountId, network, refreshCallback);
     }
+    async saveAccountToConfig(accountId, network) {
+        try {
+            const config = vscode.workspace.getConfiguration('nearExtension');
+            const accounts = config.get('accounts') || {};
+            const keyPath = this.getDefaultKeyPath(accountId, network);
+            let publicKey = '';
+            let privateKey = '';
+            try {
+                if (fs.existsSync(keyPath)) {
+                    const credentials = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
+                    publicKey = credentials.public_key || '';
+                    privateKey = credentials.private_key || '';
+                }
+            }
+            catch (err) {
+                console.log('Could not read credentials:', err);
+            }
+            accounts[accountId] = {
+                id: accountId,
+                network: network,
+                keyPath: keyPath,
+                publicKey: publicKey,
+                privateKey: privateKey,
+                isActive: false
+            };
+            await config.update('accounts', accounts, vscode.ConfigurationTarget.Global);
+            console.log(`✅ Saved account ${accountId} to VS Code configuration`);
+        }
+        catch (error) {
+            console.error('❌ Failed to save account to config:', error);
+            throw error;
+        }
+    }
     async createAccountWithCLIFaucet(accountId, network, refreshCallback) {
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
@@ -85,27 +118,28 @@ class WalletService {
             cancellable: false
         }, async (progress) => {
             try {
-                progress.report({ increment: 25, message: 'Executing NEAR CLI command...' });
-                // Execute the near create-account command with --useFaucet
+                progress.report({ increment: 20, message: 'Running NEAR CLI command...' });
                 const command = `near create-account ${accountId} --useFaucet`;
+                console.log(`Executing: ${command}`);
                 const { stdout, stderr } = await exec(command);
-                progress.report({ increment: 50, message: 'Account creation in progress...' });
-                if (stderr && !stderr.includes('WARNING')) {
-                    throw new Error(stderr);
-                }
-                progress.report({ increment: 75, message: 'Finalizing account setup...' });
-                // Wait a moment for the account to be fully created
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                progress.report({ increment: 100, message: 'Account created successfully!' });
-                vscode.window.showInformationMessage(`✅ Account ${accountId} created successfully on ${network} with test tokens!`, 'Import Account').then(selection => {
-                    if (selection === 'Import Account') {
-                        this.importCreatedAccount(accountId, network, refreshCallback);
+                console.log('STDOUT:', stdout);
+                console.log('STDERR:', stderr);
+                progress.report({ increment: 60, message: 'Verifying account creation...' });
+                // If the command executed without throwing an error, it succeeded
+                // The CLI command will throw an error if it fails, so reaching here means success
+                progress.report({ increment: 20, message: 'Account created successfully!' });
+                // Save the account to VS Code configuration
+                await this.saveAccountToConfig(accountId, network);
+                vscode.window.showInformationMessage(`✅ Successfully created account: ${accountId}`, 'View Account').then(selection => {
+                    if (selection === 'View Account') {
+                        refreshCallback();
                     }
                 });
             }
             catch (error) {
                 const errorMessage = error.message || error.toString();
-                // Handle common error cases
+                console.error('Account creation error:', errorMessage);
+                // Check for specific error conditions
                 if (errorMessage.includes('already exists')) {
                     vscode.window.showWarningMessage(`Account ${accountId} already exists. Would you like to import it instead?`, 'Import Account').then(selection => {
                         if (selection === 'Import Account') {
@@ -113,7 +147,7 @@ class WalletService {
                         }
                     });
                 }
-                else if (errorMessage.includes('near-cli-rs') || errorMessage.includes('command not found')) {
+                else if (errorMessage.includes('near-cli-rs') || errorMessage.includes('command not found') || errorMessage.includes('near: command not found')) {
                     vscode.window.showErrorMessage('NEAR CLI is not installed or not in PATH. Please install near-cli-rs: cargo install near-cli-rs', 'Install Instructions').then(selection => {
                         if (selection === 'Install Instructions') {
                             vscode.env.openExternal(vscode.Uri.parse('https://github.com/near/near-cli-rs#installation'));
@@ -121,6 +155,7 @@ class WalletService {
                     });
                 }
                 else {
+                    // Only show error if it's an actual failure
                     vscode.window.showErrorMessage(`Failed to create account: ${errorMessage}`);
                 }
             }

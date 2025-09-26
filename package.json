@@ -2,7 +2,7 @@
   "name": "near-studio",
   "displayName": "Near Studio",
   "description": "A comprehensive VS Code extension for developing, building, testing, and deploying NEAR Protocol smart contracts in Rust, JavaScript, TypeScript, and Python using create-near-app templates.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "Festivemena",
   "license": "MIT",
   "engines": {
@@ -51,6 +51,42 @@
   "main": "./out/extension.js",
   "icon": "assets/logo.png",
   "contributes": {
+    "configuration": {
+      "title": "NEAR Extension",
+      "properties": {
+        "nearExtension.accounts": {
+          "type": "object",
+          "default": {},
+          "description": "Stored NEAR account credentials",
+          "scope": "application"
+        },
+        "nearExtension.accountId": {
+          "type": "string",
+          "default": "",
+          "description": "Currently active NEAR account ID",
+          "scope": "application"
+        },
+        "nearExtension.network": {
+          "type": "string",
+          "default": "testnet",
+          "enum": ["testnet", "mainnet", "sandbox"],
+          "description": "Currently active NEAR network",
+          "scope": "application"
+        },
+        "nearExtension.autoInstallDeps": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically prompt to install missing dependencies",
+          "scope": "application"
+        },
+        "nearExtension.defaultGasAmount": {
+          "type": "string",
+          "default": "30000000000000",
+          "description": "Default gas amount for contract calls",
+          "scope": "application"
+        }
+      }
+    },
     "viewsContainers": {
       "activitybar": [
         {
