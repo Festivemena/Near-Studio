@@ -45,6 +45,16 @@ export class AccountManagerProvider implements vscode.TreeDataProvider<AccountIt
         const networks: ('testnet' | 'mainnet')[] = ['testnet', 'mainnet'];
         const items: (NetworkItem | AccountItem)[] = [];
 
+        // Add refresh button at the top
+        const refreshItem = new AccountItem(
+            'Refresh Accounts',
+            '🔄 Click to refresh',
+            vscode.TreeItemCollapsibleState.None,
+            'refresh-accounts',
+            'testnet' // dummy network
+        );
+        items.push(refreshItem);
+
         for (const network of networks) {
             const networkAccounts = this.accounts.get(network) || [];
             items.push(new NetworkItem(network, networkAccounts.length));

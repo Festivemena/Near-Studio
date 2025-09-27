@@ -60,6 +60,10 @@ class AccountManagerProvider {
     async getRootLevelItems() {
         const networks = ['testnet', 'mainnet'];
         const items = [];
+        // Add refresh button at the top
+        const refreshItem = new models_1.AccountItem('Refresh Accounts', '🔄 Click to refresh', vscode.TreeItemCollapsibleState.None, 'refresh-accounts', 'testnet' // dummy network
+        );
+        items.push(refreshItem);
         for (const network of networks) {
             const networkAccounts = this.accounts.get(network) || [];
             items.push(new models_1.NetworkItem(network, networkAccounts.length));

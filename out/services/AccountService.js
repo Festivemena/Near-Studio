@@ -25,6 +25,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AccountService = void 0;
 const vscode = __importStar(require("vscode"));
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
+const os = __importStar(require("os"));
 const CredentialsService_1 = require("./CredentialsService");
 const BalanceService_1 = require("./BalanceService");
 class AccountService {
@@ -34,6 +37,7 @@ class AccountService {
     }
     async loadAccounts() {
         try {
+            // Load from VS Code settings
             const storedAccounts = await this.credentialsService.loadStoredAccounts();
             const { accountId: activeAccountId, network: activeNetwork } = await this.credentialsService.getActiveAccountInfo();
             const accounts = new Map();
@@ -41,7 +45,7 @@ class AccountService {
             // Initialize network maps
             accounts.set('testnet', []);
             accounts.set('mainnet', []);
-            // Load stored accounts
+            // Load stored accounts from settings
             for (const [accountId, accountData] of Object.entries(storedAccounts)) {
                 const rawAccount = accountData;
                 const account = {
@@ -62,6 +66,8 @@ class AccountService {
                 networkAccounts.push(account);
                 accounts.set(account.network, networkAccounts);
             }
+            // Scan .near-credentials directory for additional accounts
+            await this.scanNearCredentials(accounts, storedAccounts);
             // Load balances for all accounts
             await this.balanceService.loadBalancesForAccounts(accounts);
             return { accounts, activeAccount };
@@ -70,6 +76,58 @@ class AccountService {
             console.error('Error loading accounts:', error);
             vscode.window.showErrorMessage(`Failed to load accounts: ${error}`);
             return { accounts: new Map(), activeAccount: null };
+        }
+    }
+    async scanNearCredentials(accounts, storedAccounts) {
+        try {
+            const homeDir = os.homedir();
+            const credentialsDir = path.join(homeDir, '.near-credentials');
+            if (!fs.existsSync(credentialsDir)) {
+                return;
+            }
+            const networks = ['testnet', 'mainnet'];
+            for (const network of networks) {
+                const networkDir = path.join(credentialsDir, network);
+                if (!fs.existsSync(networkDir)) {
+                    continue;
+                }
+                const files = fs.readdirSync(networkDir);
+                for (const file of files) {
+                    if (!file.endsWith('.json')) {
+                        continue;
+                    }
+                    const accountId = file.replace('.json', '');
+                    // Skip if already loaded from settings
+                    if (storedAccounts[accountId]) {
+                        continue;
+                    }
+                    try {
+                        const filePath = path.join(networkDir, file);
+                        const credentials = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                        const account = {
+                            id: accountId,
+                            network: network,
+                            balance: 'Loading...',
+                            publicKey: credentials.public_key,
+                            privateKey: credentials.private_key,
+                            keyPath: filePath,
+                            isActive: false
+                        };
+                        // Auto-save discovered account to settings
+                        await this.credentialsService.saveAccount(account);
+                        const networkAccounts = accounts.get(network) || [];
+                        networkAccounts.push(account);
+                        accounts.set(network, networkAccounts);
+                        console.log(`✅ Discovered account from .near-credentials: ${accountId} on ${network}`);
+                    }
+                    catch (error) {
+                        console.error(`Failed to load credentials for ${accountId}:`, error);
+                    }
+                }
+            }
+        }
+        catch (error) {
+            console.error('Error scanning .near-credentials:', error);
         }
     }
     async switchToAccount(accountId, network, accounts) {
@@ -81,10 +139,10 @@ class AccountService {
             const account = networkAccounts.find(acc => acc.id === accountId);
             if (account) {
                 account.isActive = true;
+                vscode.window.showInformationMessage(`✅ Switched to ${accountId} on ${network}`);
                 return account;
             }
-            vscode.window.showInformationMessage(`✅ Switched to ${accountId} on ${network}`);
-            return account || null;
+            return null;
         }
         catch (error) {
             vscode.window.showErrorMessage(`Failed to switch account: ${error}`);
@@ -97,34 +155,24 @@ class AccountService {
         }
     }
     async disconnectAccount(accountId, network) {
-        const confirm = await vscode.window.showWarningMessage(`Disconnect ${accountId}? This will remove it from VS Code.`, 'Disconnect', 'Cancel');
+        const confirm = await vscode.window.showWarningMessage(`Disconnect ${accountId}?`, { modal: true }, 'Disconnect', 'Cancel');
         if (confirm === 'Disconnect') {
-            try {
-                await this.credentialsService.removeAccount(accountId);
-                // If this was the active account, clear it
-                const { accountId: activeAccountId } = await this.credentialsService.getActiveAccountInfo();
-                if (activeAccountId === accountId) {
-                    await this.credentialsService.updateActiveAccount('', 'testnet');
-                }
-                vscode.window.showInformationMessage(`Disconnected ${accountId}`);
-                return true;
-            }
-            catch (error) {
-                vscode.window.showErrorMessage(`Failed to disconnect account: ${error}`);
-                return false;
-            }
+            await this.credentialsService.removeAccount(accountId);
+            vscode.window.showInformationMessage(`Disconnected ${accountId}`);
+            return true;
         }
         return false;
     }
     async copyAccountKey(accountId, network, accounts) {
         const networkAccounts = accounts.get(network) || [];
         const account = networkAccounts.find(acc => acc.id === accountId);
-        if (!account || !account.privateKey) {
-            vscode.window.showErrorMessage('Private key not available for this account');
-            return;
+        if (account?.privateKey) {
+            await vscode.env.clipboard.writeText(account.privateKey);
+            vscode.window.showInformationMessage(`Private key copied to clipboard for ${accountId}`);
         }
-        await vscode.env.clipboard.writeText(account.privateKey);
-        vscode.window.showInformationMessage('Private key copied to clipboard');
+        else {
+            vscode.window.showErrorMessage(`No private key found for ${accountId}`);
+        }
     }
 }
 exports.AccountService = AccountService;

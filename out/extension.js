@@ -45,6 +45,16 @@ async function activate(context) {
     // Register providers
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('near-studio.projectExplorer', projectExplorerProvider), vscode.window.registerWebviewViewProvider('near-studio.contractManager', contractManagerProvider), vscode.window.registerTreeDataProvider('near-studio.accountManager', accountManagerProvider), contractManagerProvider, accountManagerProvider);
     (0, accountCommands_1.registerAccountCommands)(context, accountManagerProvider);
+    // Register the refresh accounts command
+    context.subscriptions.push(vscode.commands.registerCommand('near-studio.refreshAccounts', () => {
+        accountManagerProvider.refresh();
+        vscode.window.showInformationMessage('✅ Accounts refreshed!');
+    }));
+    // Optional: Add a command to manually scan .near-credentials
+    context.subscriptions.push(vscode.commands.registerCommand('near-studio.scanNearCredentials', async () => {
+        accountManagerProvider.refresh();
+        vscode.window.showInformationMessage('✅ Scanned .near-credentials directory');
+    }));
     // Register commands modularly
     context.subscriptions.push(...(0, contractCommands_1.registerContractCommands)(), ...(0, projectCommands_1.registerProjectCommands)(accountManagerProvider));
     // Register task provider

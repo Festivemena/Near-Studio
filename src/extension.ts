@@ -34,6 +34,22 @@ export async function activate(context: vscode.ExtensionContext) {
 
     registerAccountCommands(context, accountManagerProvider);
 
+    // Register the refresh accounts command
+context.subscriptions.push(
+    vscode.commands.registerCommand('near-studio.refreshAccounts', () => {
+        accountManagerProvider.refresh();
+        vscode.window.showInformationMessage('✅ Accounts refreshed!');
+    })
+);
+
+// Optional: Add a command to manually scan .near-credentials
+context.subscriptions.push(
+    vscode.commands.registerCommand('near-studio.scanNearCredentials', async () => {
+        accountManagerProvider.refresh();
+        vscode.window.showInformationMessage('✅ Scanned .near-credentials directory');
+    })
+);
+
     // Register commands modularly
     context.subscriptions.push(
         ...registerContractCommands(),

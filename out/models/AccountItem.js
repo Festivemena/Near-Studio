@@ -26,47 +26,65 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AccountItem = void 0;
 const vscode = __importStar(require("vscode"));
 class AccountItem extends vscode.TreeItem {
-    constructor(label, version, collapsibleState, contextValue, network, isActive = false) {
-        super(label, collapsibleState);
-        this.label = label;
-        this.version = version;
+    constructor(accountId, balance, collapsibleState, itemType, network, isActive = false) {
+        super(accountId, collapsibleState);
+        this.accountId = accountId;
+        this.balance = balance;
         this.collapsibleState = collapsibleState;
-        this.contextValue = contextValue;
+        this.itemType = itemType;
         this.network = network;
         this.isActive = isActive;
-        this.tooltip = `${this.label} - ${this.version}`;
-        this.description = this.version;
-        this.setupItemAppearance();
-        this.setupCommands();
-    }
-    setupItemAppearance() {
-        if (this.contextValue === 'account') {
-            if (this.isActive) {
-                this.iconPath = new vscode.ThemeIcon('account', new vscode.ThemeColor('charts.green'));
-                this.description = `${this.version} (Active)`;
-            }
-            else {
-                this.iconPath = new vscode.ThemeIcon('account');
-            }
-        }
-        else if (this.contextValue === 'create-wallet') {
-            this.iconPath = new vscode.ThemeIcon('add', new vscode.ThemeColor('charts.blue'));
-        }
-        else if (this.contextValue === 'import-wallet') {
-            this.iconPath = new vscode.ThemeIcon('folder-opened', new vscode.ThemeColor('charts.purple'));
-        }
-        else {
-            this.iconPath = new vscode.ThemeIcon('warning');
-        }
-    }
-    setupCommands() {
-        if (this.contextValue === 'create-wallet' || this.contextValue === 'import-wallet') {
+        this.tooltip = this.getTooltip();
+        this.description = balance;
+        this.contextValue = itemType;
+        // Set icon based on type
+        if (itemType === 'account') {
+            this.iconPath = new vscode.ThemeIcon(isActive ? 'account' : 'circle-outline', isActive ? new vscode.ThemeColor('charts.green') : undefined);
+            // Add command to switch account on click
             this.command = {
-                command: this.contextValue === 'create-wallet' ? 'near-studio.createWallet' : 'near-studio.importWallet',
-                title: this.label,
-                arguments: [this.network]
+                command: 'near-studio.switchAccount',
+                title: 'Switch to Account',
+                arguments: [accountId, network]
             };
         }
+        else if (itemType === 'create-wallet') {
+            this.iconPath = new vscode.ThemeIcon('add');
+            this.command = {
+                command: 'near-studio.createWallet',
+                title: 'Create Wallet',
+                arguments: [network]
+            };
+        }
+        else if (itemType === 'import-wallet') {
+            this.iconPath = new vscode.ThemeIcon('archive');
+            this.command = {
+                command: 'near-studio.importWallet',
+                title: 'Import Wallet',
+                arguments: [network]
+            };
+        }
+        else if (itemType === 'refresh-accounts') {
+            this.iconPath = new vscode.ThemeIcon('refresh');
+            this.command = {
+                command: 'near-studio.refreshAccounts',
+                title: 'Refresh Accounts'
+            };
+        }
+    }
+    getTooltip() {
+        if (this.itemType === 'account') {
+            return `${this.accountId} on ${this.network}\nBalance: ${this.balance}${this.isActive ? '\n✅ Active' : ''}`;
+        }
+        else if (this.itemType === 'create-wallet') {
+            return `Create a new ${this.network} wallet`;
+        }
+        else if (this.itemType === 'import-wallet') {
+            return `Import an existing ${this.network} wallet`;
+        }
+        else if (this.itemType === 'refresh-accounts') {
+            return 'Refresh accounts and scan .near-credentials directory';
+        }
+        return '';
     }
 }
 exports.AccountItem = AccountItem;
