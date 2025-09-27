@@ -31,7 +31,7 @@ export class CredentialsService {
     }
 
     async saveAccount(account: NearAccount): Promise<void> {
-        const config = vscode.workspace.getConfiguration('nearExtension');
+        const config = vscode.workspace.getConfiguration('near-studio');
         const accounts = config.get<any>('accounts') || {};
         
         accounts[account.id] = account;
@@ -39,12 +39,12 @@ export class CredentialsService {
     }
 
     async loadStoredAccounts(): Promise<{ [key: string]: any }> {
-        const config = vscode.workspace.getConfiguration('nearExtension');
+        const config = vscode.workspace.getConfiguration('near-studio');
         return config.get<any>('accounts') || {};
     }
 
     async getActiveAccountInfo(): Promise<{ accountId?: string; network: string }> {
-        const config = vscode.workspace.getConfiguration('nearExtension');
+        const config = vscode.workspace.getConfiguration('near-studio');
         return {
             accountId: config.get<string>('accountId'),
             network: config.get<string>('network', 'testnet')
@@ -52,13 +52,13 @@ export class CredentialsService {
     }
 
     async updateActiveAccount(accountId: string, network: string): Promise<void> {
-        const config = vscode.workspace.getConfiguration('nearExtension');
+        const config = vscode.workspace.getConfiguration('near-studio');
         await config.update('accountId', accountId, vscode.ConfigurationTarget.Workspace);
         await config.update('network', network, vscode.ConfigurationTarget.Workspace);
     }
 
     async removeAccount(accountId: string): Promise<void> {
-        const config = vscode.workspace.getConfiguration('nearExtension');
+        const config = vscode.workspace.getConfiguration('near-studio');
         const accounts = config.get<any>('accounts') || {};
         
         delete accounts[accountId];

@@ -54,32 +54,32 @@
     "configuration": {
       "title": "NEAR Extension",
       "properties": {
-        "nearExtension.accounts": {
+        "near-studio.accounts": {
           "type": "object",
           "default": {},
           "description": "Stored NEAR account credentials",
           "scope": "application"
         },
-        "nearExtension.accountId": {
+        "near-studio.accountId": {
           "type": "string",
           "default": "",
           "description": "Currently active NEAR account ID",
           "scope": "application"
         },
-        "nearExtension.network": {
+        "near-studio.network": {
           "type": "string",
           "default": "testnet",
           "enum": ["testnet", "mainnet", "sandbox"],
           "description": "Currently active NEAR network",
           "scope": "application"
         },
-        "nearExtension.autoInstallDeps": {
+        "near-studio.autoInstallDeps": {
           "type": "boolean",
           "default": true,
           "description": "Automatically prompt to install missing dependencies",
           "scope": "application"
         },
-        "nearExtension.defaultGasAmount": {
+        "near-studio.defaultGasAmount": {
           "type": "string",
           "default": "30000000000000",
           "description": "Default gas amount for contract calls",
@@ -119,67 +119,67 @@
     },
     "commands": [
       {
-        "command": "nearExtension.createContract",
+        "command": "near-studio.createContract",
         "title": "Create New Near Contract",
         "category": "Near"
       },
       {
-        "command": "nearExtension.createRustContract",
+        "command": "near-studio.createRustContract",
         "title": "Create Rust Contract",
         "category": "Near"
       },
       {
-        "command": "nearExtension.createJSContract",
+        "command": "near-studio.createJSContract",
         "title": "Create JavaScript Contract",
         "category": "Near"
       },
       {
-        "command": "nearExtension.createTSContract",
+        "command": "near-studio.createTSContract",
         "title": "Create TypeScript Contract",
         "category": "Near"
       },
       {
-        "command": "nearExtension.createPythonContract",
+        "command": "near-studio.createPythonContract",
         "title": "Create Python Contract",
         "category": "Near"
       },
       {
-        "command": "nearExtension.createFrontend",
+        "command": "near-studio.createFrontend",
         "title": "Create Frontend",
         "category": "Near"
       },
       {
-        "command": "nearExtension.buildContract",
+        "command": "near-studio.buildContract",
         "title": "Build Contract",
         "category": "Near"
       },
       {
-        "command": "nearExtension.deployContract",
+        "command": "near-studio.deployContract",
         "title": "Deploy Contract",
         "category": "Near"
       },
       {
-        "command": "nearExtension.testContract",
+        "command": "near-studio.testContract",
         "title": "Test Contract",
         "category": "Near"
       },
       {
-        "command": "nearExtension.initializeProject",
+        "command": "near-studio.initializeProject",
         "title": "Initialize Near Project",
         "category": "Near"
       },
       {
-        "command": "nearExtension.setupRustToolchain",
+        "command": "near-studio.setupRustToolchain",
         "title": "Setup Rust Toolchain",
         "category": "Near"
       },
       {
-        "command": "nearExtension.optimizeContract",
+        "command": "near-studio.optimizeContract",
         "title": "Optimize Contract for Production",
         "category": "Near"
       },
       {
-        "command": "nearExtension.generateBindings",
+        "command": "near-studio.generateBindings",
         "title": "Generate Contract Bindings",
         "category": "Near"
       },
@@ -218,28 +218,10 @@
         "icon": "$(account)"
       },
       {
-        "command": "near-studio.switchNetwork",
-        "title": "Switch Network",
-        "category": "Near",
-        "icon": "$(globe)"
-      },
-      {
-        "command": "near-studio.fundTestnetAccount",
-        "title": "Fund Testnet Account",
-        "category": "Near",
-        "icon": "$(symbol-currency)"
-      },
-      {
         "command": "near-studio.viewAccountOnExplorer",
         "title": "View on Explorer",
         "category": "Near",
         "icon": "$(link-external)"
-      },
-      {
-        "command": "near-studio.getTestTokens",
-        "title": "Get Test Tokens",
-        "category": "Near",
-        "icon": "$(gift)"
       }
     ],
     "menus": {
@@ -251,27 +233,12 @@
       ],
       "view/title": [
         {
-          "command": "near-studio.refreshAccounts",
-          "when": "view == near-studio.accountManager",
-          "group": "navigation"
-        },
-        {
-          "command": "near-studio.quickCreateTestnetAccount",
-          "when": "view == near-studio.accountManager",
-          "group": "navigation"
-        },
-        {
           "command": "near-studio.addAccount",
           "when": "view == near-studio.accountManager",
           "group": "navigation"
         }
       ],
       "view/item/context": [
-        {
-          "command": "near-studio.fundTestnetAccount",
-          "when": "view == near-studio.accountManager && viewItem == account",
-          "group": "inline"
-        },
         {
           "command": "near-studio.viewAccountOnExplorer", 
           "when": "view == near-studio.accountManager && viewItem == account",
@@ -284,22 +251,22 @@
       ],
       "explorer/context": [
         {
-          "command": "nearExtension.createContract",
+          "command": "near-studio.createContract",
           "when": "explorerResourceIsFolder",
           "group": "near@1"
         },
         {
-          "command": "nearExtension.createFrontend",
+          "command": "near-studio.createFrontend",
           "when": "explorerResourceIsFolder",
           "group": "near@2"
         },
         {
-          "command": "nearExtension.buildContract",
+          "command": "near-studio.buildContract",
           "when": "resourceExtname == .rs || resourceExtname == .ts || resourceExtname == .js || resourceFilename == contract.py",
           "group": "near@3"
         },
         {
-          "command": "nearExtension.testContract",
+          "command": "near-studio.testContract",
           "when": "resourceExtname == .rs || resourceExtname == .ts || resourceExtname == .js || resourceFilename == contract.py",
           "group": "near@4"
         }

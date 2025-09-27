@@ -29,10 +29,10 @@ const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
 function registerProjectCommands(accountManagerProvider) {
     return [
-        vscode.commands.registerCommand('nearExtension.initializeProject', initializeProject),
-        vscode.commands.registerCommand('nearExtension.setupRustToolchain', setupRustToolchain),
-        vscode.commands.registerCommand('nearExtension.optimizeContract', optimizeContract),
-        vscode.commands.registerCommand('nearExtension.generateBindings', generateBindings),
+        vscode.commands.registerCommand('near-studio.initializeProject', initializeProject),
+        vscode.commands.registerCommand('near-studio.setupRustToolchain', setupRustToolchain),
+        vscode.commands.registerCommand('near-studio.optimizeContract', optimizeContract),
+        vscode.commands.registerCommand('near-studio.generateBindings', generateBindings),
     ];
 }
 exports.registerProjectCommands = registerProjectCommands;

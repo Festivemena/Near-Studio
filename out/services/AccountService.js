@@ -41,7 +41,6 @@ class AccountService {
             // Initialize network maps
             accounts.set('testnet', []);
             accounts.set('mainnet', []);
-            accounts.set('sandbox', []);
             // Load stored accounts
             for (const [accountId, accountData] of Object.entries(storedAccounts)) {
                 const rawAccount = accountData;

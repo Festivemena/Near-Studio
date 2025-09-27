@@ -261,7 +261,7 @@ export function registerAccountCommands(context: vscode.ExtensionContext, accoun
         }),
 
         vscode.commands.registerCommand('near-studio.exportAccounts', async () => {
-            const config = vscode.workspace.getConfiguration('nearExtension');
+            const config = vscode.workspace.getConfiguration('near-studio');
             const accounts = config.get<any>('accounts') || {};
 
             if (Object.keys(accounts).length === 0) {
@@ -293,7 +293,7 @@ export function registerAccountCommands(context: vscode.ExtensionContext, accoun
             );
 
             if (confirm === 'Clear All Accounts') {
-                const config = vscode.workspace.getConfiguration('nearExtension');
+                const config = vscode.workspace.getConfiguration('near-studio');
                 await config.update('accounts', {}, vscode.ConfigurationTarget.Global);
                 await config.update('accountId', '', vscode.ConfigurationTarget.Workspace);
 
@@ -306,7 +306,7 @@ export function registerAccountCommands(context: vscode.ExtensionContext, accoun
 
 // Optionally implement an account switcher helper UI
 async function showAccountSwitcher(accountManagerProvider: AccountManagerProvider) {
-    const config = vscode.workspace.getConfiguration('nearExtension');
+    const config = vscode.workspace.getConfiguration('near-studio');
     const accounts = config.get<any>('accounts') || {};
 
     const accountOptions = Object.entries(accounts).map(([id, account]: [string, any]) => ({

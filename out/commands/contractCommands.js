@@ -33,17 +33,17 @@ const child_process_1 = require("child_process");
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
 function registerContractCommands() {
     return [
-        vscode.commands.registerCommand('nearExtension.createContract', createContract),
-        vscode.commands.registerCommand('nearExtension.createRustContract', () => createSpecificContract('rs')),
-        vscode.commands.registerCommand('nearExtension.createJSContract', () => createSpecificContract('ts')),
-        vscode.commands.registerCommand('nearExtension.createTSContract', () => createSpecificContract('ts')),
-        vscode.commands.registerCommand('nearExtension.createPythonContract', () => createSpecificContract('py')),
-        vscode.commands.registerCommand('nearExtension.createFrontend', createFrontend),
-        vscode.commands.registerCommand('nearExtension.buildContract', buildContract),
-        vscode.commands.registerCommand('nearExtension.deployContract', deployContract),
-        vscode.commands.registerCommand('nearExtension.testContract', testContract),
-        vscode.commands.registerCommand('nearExtension.optimizeContract', optimizeContract),
-        vscode.commands.registerCommand('nearExtension.generateBindings', generateBindings)
+        vscode.commands.registerCommand('near-studio.createContract', createContract),
+        vscode.commands.registerCommand('near-studio.createRustContract', () => createSpecificContract('rs')),
+        vscode.commands.registerCommand('near-studio.createJSContract', () => createSpecificContract('ts')),
+        vscode.commands.registerCommand('near-studio.createTSContract', () => createSpecificContract('ts')),
+        vscode.commands.registerCommand('near-studio.createPythonContract', () => createSpecificContract('py')),
+        vscode.commands.registerCommand('near-studio.createFrontend', createFrontend),
+        vscode.commands.registerCommand('near-studio.buildContract', buildContract),
+        vscode.commands.registerCommand('near-studio.deployContract', deployContract),
+        vscode.commands.registerCommand('near-studio.testContract', testContract),
+        vscode.commands.registerCommand('near-studio.optimizeContract', optimizeContract),
+        vscode.commands.registerCommand('near-studio.generateBindings', generateBindings)
     ];
 }
 exports.registerContractCommands = registerContractCommands;

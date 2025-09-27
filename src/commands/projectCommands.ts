@@ -5,10 +5,10 @@ import { AccountManagerProvider } from '../providers/AccountManagerProvider';
 
 export function registerProjectCommands(accountManagerProvider: AccountManagerProvider): vscode.Disposable[] {
     return [
-        vscode.commands.registerCommand('nearExtension.initializeProject', initializeProject),
-        vscode.commands.registerCommand('nearExtension.setupRustToolchain', setupRustToolchain),
-        vscode.commands.registerCommand('nearExtension.optimizeContract', optimizeContract),
-        vscode.commands.registerCommand('nearExtension.generateBindings', generateBindings),
+        vscode.commands.registerCommand('near-studio.initializeProject', initializeProject),
+        vscode.commands.registerCommand('near-studio.setupRustToolchain', setupRustToolchain),
+        vscode.commands.registerCommand('near-studio.optimizeContract', optimizeContract),
+        vscode.commands.registerCommand('near-studio.generateBindings', generateBindings),
     ];
 }
 

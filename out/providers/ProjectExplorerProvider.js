@@ -39,7 +39,7 @@ class ProjectExplorerProvider {
         webviewView.webview.onDidReceiveMessage(data => {
             switch (data.type) {
                 case 'createContract':
-                    vscode.commands.executeCommand('nearExtension.createContract');
+                    vscode.commands.executeCommand('near-studio.createContract');
                     break;
                 case 'buildAndDeployExisting':
                     this._handleBuildAndDeployExisting();
@@ -82,7 +82,7 @@ class ProjectExplorerProvider {
     }
     async _handleBuildAndDeploySelect() {
         // Get list of available accounts from AccountManagerProvider and let user select
-        const config = vscode.workspace.getConfiguration('nearExtension');
+        const config = vscode.workspace.getConfiguration('near-studio');
         const accounts = config.get('accounts') || {};
         if (Object.keys(accounts).length === 0) {
             vscode.window.showErrorMessage('No NEAR accounts found. Please add an account first using the Account Manager.');

@@ -58,16 +58,11 @@ class AccountManagerProvider {
         return Promise.resolve([]);
     }
     async getRootLevelItems() {
-        const networks = ['testnet', 'mainnet', 'sandbox'];
+        const networks = ['testnet', 'mainnet'];
         const items = [];
         for (const network of networks) {
             const networkAccounts = this.accounts.get(network) || [];
             items.push(new models_1.NetworkItem(network, networkAccounts.length));
-        }
-        // Add quick action items if no active account
-        if (!this.activeAccount) {
-            items.push(new models_1.AccountItem('Create New Wallet', '+ Create testnet/mainnet wallet', vscode.TreeItemCollapsibleState.None, 'create-wallet', 'testnet'));
-            items.push(new models_1.AccountItem('Import Existing Wallet', '+ Add existing NEAR account', vscode.TreeItemCollapsibleState.None, 'import-wallet', 'testnet'));
         }
         return items;
     }

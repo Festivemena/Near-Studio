@@ -42,30 +42,12 @@ export class AccountManagerProvider implements vscode.TreeDataProvider<AccountIt
     }
 
     private async getRootLevelItems(): Promise<(NetworkItem | AccountItem)[]> {
-        const networks: ('testnet' | 'mainnet' | 'sandbox')[] = ['testnet', 'mainnet', 'sandbox'];
+        const networks: ('testnet' | 'mainnet')[] = ['testnet', 'mainnet'];
         const items: (NetworkItem | AccountItem)[] = [];
 
         for (const network of networks) {
             const networkAccounts = this.accounts.get(network) || [];
             items.push(new NetworkItem(network, networkAccounts.length));
-        }
-
-        // Add quick action items if no active account
-        if (!this.activeAccount) {
-            items.push(new AccountItem(
-                'Create New Wallet',
-                '+ Create testnet/mainnet wallet',
-                vscode.TreeItemCollapsibleState.None,
-                'create-wallet',
-                'testnet'
-            ));
-            items.push(new AccountItem(
-                'Import Existing Wallet',
-                '+ Add existing NEAR account',
-                vscode.TreeItemCollapsibleState.None,
-                'import-wallet',
-                'testnet'
-            ));
         }
 
         return items;
@@ -134,15 +116,15 @@ export class AccountManagerProvider implements vscode.TreeDataProvider<AccountIt
     }
 
     // Public API methods that delegate to services
-    async createWallet(network: 'testnet' | 'mainnet' | 'sandbox'): Promise<void> {
+    async createWallet(network: 'testnet' | 'mainnet'): Promise<void> {
         await this.walletService.createWallet(network, this.accounts, this.refresh.bind(this));
     }
 
-    async importWallet(network: 'testnet' | 'mainnet' | 'sandbox'): Promise<void> {
+    async importWallet(network: 'testnet' | 'mainnet'): Promise<void> {
         await this.walletService.importWallet(network, this.accounts, this.refresh.bind(this));
     }
 
-    async switchToAccount(accountId: string, network: 'testnet' | 'mainnet' | 'sandbox'): Promise<void> {
+    async switchToAccount(accountId: string, network: 'testnet' | 'mainnet'): Promise<void> {
         const newActiveAccount = await this.accountService.switchToAccount(accountId, network, this.accounts);
         if (newActiveAccount) {
             this.activeAccount = newActiveAccount;

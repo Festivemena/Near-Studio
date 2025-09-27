@@ -23,7 +23,7 @@ export class ProjectExplorerProvider implements vscode.WebviewViewProvider {
         webviewView.webview.onDidReceiveMessage(data => {
             switch (data.type) {
                 case 'createContract':
-                    vscode.commands.executeCommand('nearExtension.createContract');
+                    vscode.commands.executeCommand('near-studio.createContract');
                     break;
                 case 'buildAndDeployExisting':
                     this._handleBuildAndDeployExisting();
@@ -70,7 +70,7 @@ export class ProjectExplorerProvider implements vscode.WebviewViewProvider {
 
     private async _handleBuildAndDeploySelect() {
         // Get list of available accounts from AccountManagerProvider and let user select
-        const config = vscode.workspace.getConfiguration('nearExtension');
+        const config = vscode.workspace.getConfiguration('near-studio');
         const accounts = config.get<any>('accounts') || {};
         
         if (Object.keys(accounts).length === 0) {

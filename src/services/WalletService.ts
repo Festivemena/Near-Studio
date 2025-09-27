@@ -9,7 +9,7 @@ const exec = promisify(require('child_process').exec);
 export class WalletService {
     private credentialsService = new CredentialsService();
 
-    async createWallet(network: 'testnet' | 'mainnet' | 'sandbox', accounts: Map<string, NearAccount[]>, refreshCallback: () => void): Promise<void> {
+    async createWallet(network: 'testnet' | 'mainnet', accounts: Map<string, NearAccount[]>, refreshCallback: () => void): Promise<void> {
         try {
             const accountId = await this.getAccountIdInput(network);
             if (!accountId) return;
@@ -18,8 +18,6 @@ export class WalletService {
                 await this.handleTestnetCreation(accountId, network, refreshCallback);
             } else if (network === 'mainnet') {
                 await this.handleMainnetCreation();
-            } else {
-                await this.createSandboxAccount(accountId, network, refreshCallback);
             }
 
         } catch (error) {
@@ -42,9 +40,6 @@ export class WalletService {
                 if (network === 'mainnet' && !value.endsWith('.near')) {
                     return 'Mainnet accounts must end with .near';
                 }
-                if (network === 'sandbox' && !value.includes('.test.')) {
-                    return 'Sandbox accounts must include .test.';
-                }
                 
                 return null;
             }
@@ -57,7 +52,7 @@ export class WalletService {
 
     private async saveAccountToConfig(accountId: string, network: string): Promise<void> {
     try {
-        const config = vscode.workspace.getConfiguration('nearExtension');
+        const config = vscode.workspace.getConfiguration('near-studio');
         const accounts = config.get<any>('accounts') || {};
         
         const keyPath = this.getDefaultKeyPath(accountId, network);
@@ -196,29 +191,7 @@ export class WalletService {
         });
     }
 
-    private async createSandboxAccount(accountId: string, network: 'sandbox', refreshCallback: () => void): Promise<void> {
-        try {
-            const keyPair = await NearCliUtils.generateKeysWithNearCliRs();
-            await this.credentialsService.saveNearCliCredentials(accountId, network, keyPair);
-
-            const newAccount: NearAccount = {
-                id: accountId,
-                network: network,
-                publicKey: keyPair.publicKey,
-                privateKey: keyPair.privateKey,
-                balance: '0 NEAR (Not Funded)',
-                isActive: true
-            };
-
-            await this.credentialsService.saveAccount(newAccount);
-            vscode.window.showInformationMessage(`Sandbox account ${accountId} created. You may need to fund or initialize it in your sandbox environment.`);
-            refreshCallback();
-        } catch (error) {
-            vscode.window.showErrorMessage(`Failed to create sandbox account: ${error}`);
-        }
-    }
-
-    async importWallet(network: 'testnet' | 'mainnet' | 'sandbox', accounts: Map<string, NearAccount[]>, refreshCallback: () => void): Promise<void> {
+    async importWallet(network: 'testnet' | 'mainnet', accounts: Map<string, NearAccount[]>, refreshCallback: () => void): Promise<void> {
         try {
             const accountId = await vscode.window.showInputBox({
                 prompt: `Enter existing account ID for ${network}`,

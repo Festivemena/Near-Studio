@@ -45,9 +45,6 @@ class WalletService {
             else if (network === 'mainnet') {
                 await this.handleMainnetCreation();
             }
-            else {
-                await this.createSandboxAccount(accountId, network, refreshCallback);
-            }
         }
         catch (error) {
             vscode.window.showErrorMessage(`Failed to create wallet: ${error}`);
@@ -68,9 +65,6 @@ class WalletService {
                 if (network === 'mainnet' && !value.endsWith('.near')) {
                     return 'Mainnet accounts must end with .near';
                 }
-                if (network === 'sandbox' && !value.includes('.test.')) {
-                    return 'Sandbox accounts must include .test.';
-                }
                 return null;
             }
         });
@@ -80,7 +74,7 @@ class WalletService {
     }
     async saveAccountToConfig(accountId, network) {
         try {
-            const config = vscode.workspace.getConfiguration('nearExtension');
+            const config = vscode.workspace.getConfiguration('near-studio');
             const accounts = config.get('accounts') || {};
             const keyPath = this.getDefaultKeyPath(accountId, network);
             let publicKey = '';
@@ -186,26 +180,6 @@ class WalletService {
                 vscode.env.openExternal(vscode.Uri.parse('https://wallet.near.org'));
             }
         });
-    }
-    async createSandboxAccount(accountId, network, refreshCallback) {
-        try {
-            const keyPair = await nearCliUtils_1.NearCliUtils.generateKeysWithNearCliRs();
-            await this.credentialsService.saveNearCliCredentials(accountId, network, keyPair);
-            const newAccount = {
-                id: accountId,
-                network: network,
-                publicKey: keyPair.publicKey,
-                privateKey: keyPair.privateKey,
-                balance: '0 NEAR (Not Funded)',
-                isActive: true
-            };
-            await this.credentialsService.saveAccount(newAccount);
-            vscode.window.showInformationMessage(`Sandbox account ${accountId} created. You may need to fund or initialize it in your sandbox environment.`);
-            refreshCallback();
-        }
-        catch (error) {
-            vscode.window.showErrorMessage(`Failed to create sandbox account: ${error}`);
-        }
     }
     async importWallet(network, accounts, refreshCallback) {
         try {

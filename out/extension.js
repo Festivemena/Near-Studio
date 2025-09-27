@@ -94,7 +94,7 @@ async function detectProjectType(workspacePath) {
     return null;
 }
 async function validateToolchains() {
-    const config = vscode.workspace.getConfiguration('nearExtension');
+    const config = vscode.workspace.getConfiguration('near-studio');
     if (!config.get('autoInstallDeps', true))
         return;
     try {
