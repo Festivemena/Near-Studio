@@ -25,14 +25,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerProjectCommands = void 0;
 const vscode = __importStar(require("vscode"));
-const path = __importStar(require("path"));
-const fs = __importStar(require("fs"));
 function registerProjectCommands(accountManagerProvider) {
     return [
         vscode.commands.registerCommand('near-studio.initializeProject', initializeProject),
         vscode.commands.registerCommand('near-studio.setupRustToolchain', setupRustToolchain),
-        vscode.commands.registerCommand('near-studio.optimizeContract', optimizeContract),
-        vscode.commands.registerCommand('near-studio.generateBindings', generateBindings),
     ];
 }
 exports.registerProjectCommands = registerProjectCommands;
@@ -75,34 +71,5 @@ async function setupRustToolchain() {
     terminal.sendText('echo "Rust toolchain setup complete!"');
     terminal.show();
     vscode.window.showInformationMessage('Setting up Rust toolchain for NEAR development...');
-}
-async function optimizeContract() {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) {
-        vscode.window.showErrorMessage('No workspace folder found');
-        return;
-    }
-    const optimizeScript = path.join(workspaceFolder.uri.fsPath, 'optimize.sh');
-    const terminal = vscode.window.createTerminal('Near Optimize');
-    if (fs.existsSync(optimizeScript)) {
-        terminal.sendText('./optimize.sh');
-    }
-    else {
-        terminal.sendText('cargo build --target wasm32-unknown-unknown --release');
-        terminal.sendText('if command -v wasm-opt &> /dev/null; then wasm-opt -Oz target/wasm32-unknown-unknown/release/*.wasm --output optimized.wasm; fi');
-    }
-    terminal.show();
-    vscode.window.showInformationMessage('Optimizing contract for production...');
-}
-async function generateBindings() {
-    const bindingTypes = [
-        { label: 'TypeScript Bindings', description: 'Generate TypeScript interface for contract calls' },
-        { label: 'JavaScript Bindings', description: 'Generate JavaScript helpers for contract interaction' },
-        { label: 'Rust Bindings', description: 'Generate Rust client code for cross-contract calls' }
-    ];
-    const selected = await vscode.window.showQuickPick(bindingTypes, { placeHolder: 'Select binding type to generate' });
-    if (!selected)
-        return;
-    vscode.window.showInformationMessage(`Generating ${selected.label} (feature coming soon)!`);
 }
 //# sourceMappingURL=projectCommands.js.map

@@ -197,46 +197,6 @@ export function registerAccountCommands(context: vscode.ExtensionContext, accoun
             }
         }),
 
-        vscode.commands.registerCommand('near-studio.fundTestnetAccount', async (accountItem) => {
-            if (accountItem && accountItem.contextValue === 'account' && accountItem.network === 'testnet') {
-                await vscode.window.withProgress({
-                    location: vscode.ProgressLocation.Notification,
-                    title: `Funding ${accountItem.label}...`,
-                    cancellable: false
-                }, async () => {
-                    try {
-                        // Try helper.testnet.near.org faucet API
-                        const fetch = (global as any).fetch || require('node-fetch');
-                        const response = await fetch('https://helper.testnet.near.org/account', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({
-                                newAccountId: accountItem.label,
-                                newAccountPublicKey: 'ed25519:placeholder' // TODO: replace with real key if available
-                            }),
-                        });
-
-                        if (response.ok) {
-                            vscode.window.showInformationMessage(`✅ ${accountItem.label} funded with test tokens!`);
-                            accountManagerProvider.refresh();
-                            return;
-                        }
-                        throw new Error('Funding request failed');
-                    } catch (error) {
-                        // Fallback to near-cli command if faucet fails
-                        try {
-                            const exec = promisify(require('child_process').exec);
-                            await exec(`near send testnet ${accountItem.label} 10 --networkId testnet`);
-                            vscode.window.showInformationMessage(`✅ ${accountItem.label} funded with test tokens!`);
-                            accountManagerProvider.refresh();
-                        } catch (cliError) {
-                            vscode.window.showErrorMessage(`Failed to fund account: ${error}`);
-                        }
-                    }
-                });
-            }
-        }),
-
         vscode.commands.registerCommand('near-studio.viewAccountOnExplorer', async (accountItem) => {
             if (accountItem && accountItem.contextValue === 'account') {
                 const explorerUrl = accountItem.network === 'testnet' 
