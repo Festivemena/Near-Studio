@@ -12,7 +12,7 @@ export class ProjectExplorerProvider implements vscode.WebviewViewProvider {
         _token: vscode.CancellationToken,
     ) {
         this._view = webviewView;
-        
+         
         webviewView.webview.options = {
             enableScripts: true,
             localResourceRoots: [this._extensionUri]
