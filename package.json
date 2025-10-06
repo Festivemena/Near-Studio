@@ -1,8 +1,8 @@
 {
   "name": "near-studio",
   "displayName": "Near Studio",
-  "description": "A comprehensive VS Code extension for developing, building, testing, and deploying NEAR Protocol smart contracts in Rust, JavaScript, TypeScript, and Python using create-near-app templates.",
-  "version": "0.1.3",
+  "description": "A comprehensive VS Code extension for developing, building, testing, and deploying NEAR Protocol Rust smart contracts using cargo-near.",
+  "version": "0.2.0",
   "publisher": "Festivemena",
   "license": "MIT",
   "engines": {
@@ -11,7 +11,6 @@
   "categories": [
     "Programming Languages",
     "Snippets",
-    "Debuggers",
     "Other"
   ],
   "keywords": [
@@ -19,17 +18,10 @@
     "blockchain",
     "smart-contracts",
     "rust",
-    "javascript",
-    "typescript",
-    "python",
     "wasm",
-    "wallet",
+    "cargo-near",
     "testnet",
-    "mainnet",
-    "create-near-app",
-    "next.js",
-    "vite",
-    "react"
+    "mainnet"
   ],
   "repository": {
     "type": "git",
@@ -41,12 +33,7 @@
   "homepage": "https://github.com/Festivemena/Near-Studio#readme",
   "activationEvents": [
     "onLanguage:rust",
-    "onLanguage:javascript",
-    "onLanguage:typescript",
-    "onLanguage:python",
-    "workspaceContains:**/Cargo.toml",
-    "workspaceContains:**/package.json",
-    "workspaceContains:**/contract.py"
+    "workspaceContains:**/Cargo.toml"
   ],
   "main": "./out/extension.js",
   "icon": "assets/logo.png",
@@ -69,7 +56,7 @@
         "near-studio.network": {
           "type": "string",
           "default": "testnet",
-          "enum": ["testnet", "mainnet", "sandbox"],
+          "enum": ["testnet", "mainnet"],
           "description": "Currently active NEAR network",
           "scope": "application"
         },
@@ -77,12 +64,6 @@
           "type": "boolean",
           "default": true,
           "description": "Automatically prompt to install missing dependencies",
-          "scope": "application"
-        },
-        "near-studio.defaultGasAmount": {
-          "type": "string",
-          "default": "30000000000000",
-          "description": "Default gas amount for contract calls",
           "scope": "application"
         }
       }
@@ -120,7 +101,7 @@
     "commands": [
       {
         "command": "near-studio.createContract",
-        "title": "Create New Near Contract",
+        "title": "Create New Rust Contract",
         "category": "Near"
       },
       {
@@ -129,33 +110,8 @@
         "category": "Near"
       },
       {
-        "command": "near-studio.createJSContract",
-        "title": "Create JavaScript Contract",
-        "category": "Near"
-      },
-      {
-        "command": "near-studio.createTSContract",
-        "title": "Create TypeScript Contract",
-        "category": "Near"
-      },
-      {
-        "command": "near-studio.createPythonContract",
-        "title": "Create Python Contract",
-        "category": "Near"
-      },
-      {
-        "command": "near-studio.createFrontend",
-        "title": "Create Frontend",
-        "category": "Near"
-      },
-      {
         "command": "near-studio.buildContract",
         "title": "Build Contract",
-        "category": "Near"
-      },
-      {
-        "command": "near-studio.deployContract",
-        "title": "Deploy Contract",
         "category": "Near"
       },
       {
@@ -164,23 +120,18 @@
         "category": "Near"
       },
       {
-        "command": "near-studio.initializeProject",
-        "title": "Initialize Near Project",
+        "command": "near-studio.deployContract",
+        "title": "Deploy Contract (Existing Account)",
+        "category": "Near"
+      },
+      {
+        "command": "near-studio.deployContractNewAccount",
+        "title": "Deploy Contract (New Dev Account)",
         "category": "Near"
       },
       {
         "command": "near-studio.setupRustToolchain",
         "title": "Setup Rust Toolchain",
-        "category": "Near"
-      },
-      {
-        "command": "near-studio.optimizeContract",
-        "title": "Optimize Contract for Production",
-        "category": "Near"
-      },
-      {
-        "command": "near-studio.generateBindings",
-        "title": "Generate Contract Bindings",
         "category": "Near"
       },
       {
@@ -227,6 +178,30 @@
     "menus": {
       "commandPalette": [
         {
+          "command": "near-studio.createContract",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "near-studio.createRustContract",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "near-studio.buildContract",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "near-studio.testContract",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "near-studio.deployContract",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "near-studio.deployContractNewAccount",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
           "command": "near-studio.refreshAccounts",
           "when": "false"
         }
@@ -256,19 +231,14 @@
           "group": "near@1"
         },
         {
-          "command": "near-studio.createFrontend",
-          "when": "explorerResourceIsFolder",
+          "command": "near-studio.buildContract",
+          "when": "resourceExtname == .rs",
           "group": "near@2"
         },
         {
-          "command": "near-studio.buildContract",
-          "when": "resourceExtname == .rs || resourceExtname == .ts || resourceExtname == .js || resourceFilename == contract.py",
-          "group": "near@3"
-        },
-        {
           "command": "near-studio.testContract",
-          "when": "resourceExtname == .rs || resourceExtname == .ts || resourceExtname == .js || resourceFilename == contract.py",
-          "group": "near@4"
+          "when": "resourceExtname == .rs",
+          "group": "near@3"
         }
       ]
     },
@@ -276,14 +246,6 @@
       {
         "language": "rust",
         "path": "./snippets/rust-snippets.json"
-      },
-      {
-        "language": "javascript",
-        "path": "./snippets/js-snippets.json"
-      },
-      {
-        "language": "typescript",
-        "path": "./snippets/ts-snippets.json"
       }
     ],
     "taskDefinitions": [
@@ -299,24 +261,12 @@
             "enum": [
               "build",
               "test",
-              "deploy",
-              "optimize",
-              "generate-bindings"
+              "deploy"
             ]
           },
           "contract": {
             "type": "string",
             "description": "The contract to operate on"
-          },
-          "language": {
-            "type": "string",
-            "description": "Contract language",
-            "enum": [
-              "rust",
-              "typescript",
-              "javascript",
-              "python"
-            ]
           }
         }
       }
