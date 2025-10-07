@@ -25,11 +25,14 @@ export class ProjectExplorerProvider implements vscode.WebviewViewProvider {
                 case 'createContract':
                     vscode.commands.executeCommand('near-studio.createContract');
                     break;
-                case 'buildAndDeployExisting':
-                    this._handleBuildAndDeployExisting();
+                case 'buildAndDeployRandom':
+                    this._handleBuildAndDeployRandom();
                     break;
                 case 'buildAndDeploySelect':
                     this._handleBuildAndDeploySelect();
+                    break;
+                case 'runTests':
+                    this._handleRunTests();
                     break;
                 case 'toggleBuildDeploy':
                     // Toggle the build & deploy options visibility
@@ -39,33 +42,52 @@ export class ProjectExplorerProvider implements vscode.WebviewViewProvider {
         });
     }
 
-    private async _handleBuildAndDeployExisting() {
-        // Deploy to existing account - user inputs account ID directly
-        const accountId = await vscode.window.showInputBox({
-            prompt: 'Enter existing account ID to deploy to',
-            placeHolder: 'your-account.testnet or your-account.near',
-            validateInput: (value) => {
-                if (!value || value.trim().length === 0) {
-                    return 'Account ID is required';
-                }
-                if (!value.includes('.')) {
-                    return 'Account ID should include network (.testnet or .near)';
-                }
-                return null;
-            }
+    private async _handleBuildAndDeployRandom() {
+        // Generate a random account name
+        const randomName = this._generateRandomAccountName();
+        const network = await vscode.window.showQuickPick(['testnet'], {
+            placeHolder: 'Select network for the random account'
         });
 
-        if (!accountId) return;
+        if (!network) return;
 
-        // Execute cargo near deploy command with specific account
+        const accountId = `${randomName}.${network}`;
+
+        // Show confirmation
+        const confirm = await vscode.window.showInformationMessage(
+            `Create and deploy to random account: ${accountId}?`,
+            'Yes',
+            'No'
+        );
+
+        if (confirm !== 'Yes') return;
+
+        // Create the account first, then deploy
         const terminal = vscode.window.createTerminal('NEAR Build & Deploy');
-        terminal.sendText(`cargo near deploy build-non-reproducible-wasm ${accountId.trim()}`);
+        
+        // Create the random account (you may need to adjust this command based on your setup)
+        terminal.sendText(`near create-account ${accountId} --useFaucet`);
+        
+        // Wait a bit for account creation, then deploy
+        setTimeout(() => {
+            terminal.sendText(`cargo near deploy build-non-reproducible-wasm ${accountId}`);
+        }, 3000);
+        
         terminal.show();
+
+        vscode.window.showInformationMessage(`Creating random account: ${accountId}`);
 
         // Parse ABI after deployment
         setTimeout(() => {
-            this._parseContractABI(accountId.trim());
-        }, 5000); // Wait 5 seconds for deployment to complete
+            this._parseContractABI(accountId);
+        }, 8000); // Wait 8 seconds for account creation and deployment to complete
+    }
+
+    private _generateRandomAccountName(): string {
+        // Generate a random account name with timestamp and random string
+        const timestamp = Date.now().toString(36);
+        const randomStr = Math.random().toString(36).substring(2, 8);
+        return `contract-${timestamp}-${randomStr}`;
     }
 
     private async _handleBuildAndDeploySelect() {
@@ -100,6 +122,15 @@ export class ProjectExplorerProvider implements vscode.WebviewViewProvider {
         setTimeout(() => {
             this._parseContractABI(selectedAccount.label);
         }, 5000); // Wait 5 seconds for deployment to complete
+    }
+
+    private async _handleRunTests() {
+        // Run cargo test command
+        const terminal = vscode.window.createTerminal('NEAR Tests');
+        terminal.sendText('cargo test');
+        terminal.show();
+        
+        vscode.window.showInformationMessage('Running tests...');
     }
 
     private async _parseContractABI(accountId?: string) {
@@ -486,9 +517,9 @@ export class ProjectExplorerProvider implements vscode.WebviewViewProvider {
                     </button>
                     
                     <div class="deploy-options" id="deploy-options">
-                        <button class="deploy-option" onclick="buildAndDeployExisting()">
-                            <div class="option-title">📝 Existing Account</div>
-                            <div class="option-description">Enter account ID manually</div>
+                        <button class="deploy-option" onclick="buildAndDeployRandom()">
+                            <div class="option-title">🎲 Random Account</div>
+                            <div class="option-description">Create and deploy to new random account</div>
                         </button>
                         <button class="deploy-option" onclick="buildAndDeploySelect()">
                             <div class="option-title">📋 Select Account</div>
@@ -496,6 +527,10 @@ export class ProjectExplorerProvider implements vscode.WebviewViewProvider {
                         </button>
                     </div>
                 </div>
+
+                <button class="main-button" onclick="runTests()">
+                    🧪 Run Tests
+                </button>
             </div>
 
             <script>
@@ -523,10 +558,10 @@ export class ProjectExplorerProvider implements vscode.WebviewViewProvider {
                     }
                 }
                 
-                function buildAndDeployExisting() {
+                function buildAndDeployRandom() {
                     closeDropdown();
                     vscode.postMessage({
-                        type: 'buildAndDeployExisting'
+                        type: 'buildAndDeployRandom'
                     });
                 }
                 
@@ -534,6 +569,12 @@ export class ProjectExplorerProvider implements vscode.WebviewViewProvider {
                     closeDropdown();
                     vscode.postMessage({
                         type: 'buildAndDeploySelect'
+                    });
+                }
+
+                function runTests() {
+                    vscode.postMessage({
+                        type: 'runTests'
                     });
                 }
                 
