@@ -77,18 +77,37 @@ async function createRustContract() {
     terminal.show();
 
     vscode.window.showInformationMessage(
-        `Creating Rust contract "${projectName}". Check the terminal for progress.`,
-        'Open Folder'
-    ).then(selection => {
-        if (selection === 'Open Folder') {
-            // Wait a bit for the folder to be created
+        `Creating Rust contract "${projectName}". The folder will open automatically once created.`
+    );
+
+    // Automatically open the new contract folder after creation
+    // Wait for the folder to be created by cargo near new
+    setTimeout(() => {
+        if (fs.existsSync(targetPath)) {
+            vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(targetPath));
+
+            // Switch terminal to the new contract directory
+            setTimeout(() => {
+                terminal.sendText(`cd "${targetPath}"`);
+            }, 500);
+        } else {
+            // If folder doesn't exist yet, wait a bit longer
             setTimeout(() => {
                 if (fs.existsSync(targetPath)) {
                     vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(targetPath));
+
+                    // Switch terminal to the new contract directory
+                    setTimeout(() => {
+                        terminal.sendText(`cd "${targetPath}"`);
+                    }, 500);
+                } else {
+                    vscode.window.showWarningMessage(
+                        `Contract folder "${projectName}" not found. It may still be creating. Check the terminal.`
+                    );
                 }
-            }, 2000);
+            }, 3000);
         }
-    });
+    }, 2000);
 }
 
 /**
